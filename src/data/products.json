@@ -1,0 +1,94 @@
+[
+  {
+    "id": "1",
+    "title": "NOTEBOOK RAZER RZ09-0423 BLADE 17",
+    "description": "Notebook: Core i7-12800H, RAM 16Gb, RTX 3060 6 GB GDDR6, display 17.3, SSD NVMe 1Tb, S.O W11",
+    "code": "LPTX1",
+    "price": 2599.99,
+    "status": true,
+    "stock": 10,
+    "category": "Notebooks",
+    "thumbnails": [
+      "https://www.banifox.com/imagenes/img_contenido/productos/a/bfxbl17.jpg"
+    ]
+  },
+  {
+    "id": "2",
+    "title": "Auriculares Logitech PRO X WIRELESS 981-000906",
+    "description": "Auriculares inalámbricos Gamer con microfono y cancelación de ruido.",
+    "code": "AUD123",
+    "price": 233,
+    "status": true,
+    "stock": 20,
+    "category": "Auriculares",
+    "thumbnails": [
+      "https://www.banifox.com/imagenes/img_contenido/productos/a/BFXLOV55.jpg"
+    ]
+  },
+  {
+    "id": "3",
+    "title": "Cámara de Seguridad QIHAN SQH-1141PIX",
+    "description": "Cámara de seguridad con infrarrojo.",
+    "code": "CAMSEC",
+    "price": 20,
+    "status": true,
+    "stock": 50,
+    "category": "Seguridad",
+    "thumbnails": [
+      "https://www.banifox.com/imagenes/img_contenido/productos/a/bfxqh1141.jpg"
+    ]
+  },
+  {
+    "id": "4",
+    "title": "Impresora HP M507DN",
+    "description": "Impresora laser monocromatica multifunción",
+    "code": "IMP001",
+    "price": 755,
+    "status": true,
+    "stock": 15,
+    "category": "Impresora",
+    "thumbnails": [
+      "https://www.banifox.com/imagenes/img_contenido/productos/a/BFXM507.jpg"
+    ]
+  },
+  {
+    "id": "5",
+    "title": "Samsung Tablet Galaxy A9 SM-X115 4GB/64GB",
+    "description": "Tablet de alto rendimiento",
+    "code": "JUG456",
+    "price": 329,
+    "status": true,
+    "stock": 30,
+    "category": "Tablet",
+    "thumbnails": [
+      "https://www.banifox.com/imagenes/img_contenido/productos/a/bfxx115.jpg"
+    ]
+  },
+  {
+    "id": "6",
+    "title": "Monitor LG 34GP63A 160HZ",
+    "description": "Monitor Gamer de 34 pulgadas",
+    "code": "MONOJ01",
+    "price": 495,
+    "status": true,
+    "stock": 40,
+    "category": "Monitores",
+    "thumbnails": [
+      "https://www.banifox.com/imagenes/img_contenido/productos/a/1715364089_lg-2-1.png"
+    ]
+  },
+  {
+    "id": 7,
+    "title": "Camiseta Deportiva",
+    "description": "Camiseta de algodón de alta calidad",
+    "code": "CAM123",
+    "price": 25.99,
+    "status": true,
+    "stock": 100,
+    "category": "Ropa",
+    "thumbnails": [
+      "url1",
+      "url2"
+    ]
+  }
+]
