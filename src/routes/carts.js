@@ -60,20 +60,11 @@ router.get('/:cid', (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-    const { products } = req.body;
-
-    if (!products || !Array.isArray(products)) {
-        return res.status(400).json({ error: 'Products array is required' });
-    }
-
     const newId = carts.length > 0 ? (Math.max(...carts.map(c => parseInt(c.id))) + 1).toString() : '1';
 
     const newCart = {
         id: newId,
-        products: products.map(p => ({
-            product: p.product,
-            quantity: p.quantity
-        }))
+        products: []
     };
 
     carts.push(newCart);
@@ -81,7 +72,7 @@ router.post('/', async (req, res) => {
     res.status(201).json(newCart);
 });
 
-router.put('/:cid/product/:pid', async (req, res) => {
+router.post('/:cid/product/:pid', async (req, res) => {
     const cart = carts.find(c => c.id === req.params.cid);
     const product = products.find(p => p.id === req.params.pid);
 
@@ -93,18 +84,12 @@ router.put('/:cid/product/:pid', async (req, res) => {
         return res.status(404).json({ error: 'Product not found' });
     }
 
-    const { quantity } = req.body;
-
-    if (!quantity || isNaN(quantity) || quantity <= 0) {
-        return res.status(400).json({ error: 'Valid quantity is required' });
-    }
-
     const existingProductInCart = cart.products.find(p => p.product === req.params.pid);
 
     if (existingProductInCart) {
-        existingProductInCart.quantity = parseInt(quantity);
+        existingProductInCart.quantity += 1;
     } else {
-        return res.status(404).json({ error: 'Product not found in cart' });
+        cart.products.push({ product: req.params.pid, quantity: 1 });
     }
 
     await saveCarts();
