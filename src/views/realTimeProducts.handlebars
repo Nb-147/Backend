@@ -19,7 +19,7 @@
             <p>Stock: {{this.stock}}</p>
             <p>Category: {{this.category}}</p>
             <p>Description: {{this.description}}</p>
-            <p>Code: {{this.code}}</p> <!-- Mostrar el code existente -->
+            <p>Code: {{this.code}}</p> 
             <button onclick="toggleMenu('{{this.id}}')">☰</button>
             <div id="menu-{{this.id}}" style="display: none;">
                 <button onclick="editProduct('{{this.id}}')">Modify</button>
@@ -34,7 +34,7 @@
     <form id="productForm" style="display: none;">
         <input type="text" id="title" placeholder="Title" required><br>
         <input type="text" id="description" placeholder="Description" required><br>
-        <input type="text" id="code" placeholder="Code" required readonly><br> <!-- Code en solo lectura -->
+        <input type="text" id="code" placeholder="Code" required readonly><br> 
         <input type="number" id="price" placeholder="Price" required><br>
         <input type="number" id="stock" placeholder="Stock" required><br>
         <input type="text" id="category" placeholder="Category" required><br>
@@ -67,23 +67,26 @@
             menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
         }
 
-        function editProduct(productId) {
-            const productElement = document.getElementById(`product-${productId}`);
-            if (!productElement) {
-                return;
-            }
-            document.getElementById('title').value = productElement.querySelector('h3').innerText;
-            document.getElementById('description').value = productElement.querySelector('p:nth-of-type(4)').innerText;
-            document.getElementById('code').value = productElement.querySelector('p:nth-of-type(5)').innerText.split(': ')[1]; // Captura el valor existente del code
-            document.getElementById('price').value = productElement.querySelector('p:nth-of-type(1)').innerText.split('$')[1];
-            document.getElementById('stock').value = productElement.querySelector('p:nth-of-type(2)').innerText;
-            document.getElementById('category').value = productElement.querySelector('p:nth-of-type(3)').innerText;
-            document.getElementById('thumbnails').value = productElement.querySelector('p:nth-of-type(6)') ? productElement.querySelector('p:nth-of-type(6)').innerText : '';
-            editingProductId = parseInt(productId);
-            document.getElementById('code').setAttribute('readonly', 'readonly'); // Mantener code en solo lectura
-            productForm.style.display = 'block';
-            window.scrollTo(0, 0);
-        }
+function editProduct(productId) {
+    const productElement = document.getElementById(`product-${productId}`);
+    if (!productElement) {
+        return;
+    }
+
+    document.getElementById('title').value = productElement.querySelector('h3').innerText;
+    document.getElementById('description').value = productElement.querySelector('p:nth-of-type(4)').innerText.replace('Description: ', '');
+    document.getElementById('code').value = productElement.querySelector('p:nth-of-type(5)').innerText.split(': ')[1];
+    document.getElementById('price').value = productElement.querySelector('p:nth-of-type(1)').innerText.split('$')[1];
+    document.getElementById('stock').value = productElement.querySelector('p:nth-of-type(2)').innerText;
+    document.getElementById('category').value = productElement.querySelector('p:nth-of-type(3)').innerText.replace('Category: ', '');
+    document.getElementById('thumbnails').value = productElement.querySelector('p:nth-of-type(6)') ? productElement.querySelector('p:nth-of-type(6)').innerText : '';
+
+    editingProductId = parseInt(productId);
+    document.getElementById('code').setAttribute('readonly', 'readonly'); 
+    productForm.style.display = 'block';
+    window.scrollTo(0, 0);
+}
+
 
         productForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -131,7 +134,7 @@
                 productElement.querySelector('p:nth-of-type(2)').innerText = product.stock;
                 productElement.querySelector('p:nth-of-type(3)').innerText = product.category;
                 productElement.querySelector('p:nth-of-type(4)').innerText = product.description;
-                productElement.querySelector('p:nth-of-type(5)').innerText = `Code: ${product.code}`; // Asegura que se muestre el code correcto
+                productElement.querySelector('p:nth-of-type(5)').innerText = `Code: ${product.code}`; 
             }
         });
 
