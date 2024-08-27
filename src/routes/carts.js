@@ -11,29 +11,25 @@ let products = [];
 
 const loadData = async () => {
     try {
-        try {
-            const data = await fs.readFile(cartsFilePath, 'utf8');
-            carts = JSON.parse(data);
-        } catch (err) {
-            if (err.code === 'ENOENT') {
-                carts = [];
-            } else {
-                console.error('Error reading carts file:', err);
-            }
+        const cartsData = await fs.readFile(cartsFilePath, 'utf8');
+        carts = JSON.parse(cartsData);
+    } catch (err) {
+        if (err.code === 'ENOENT') {
+            carts = [];
+        } else {
+            console.error('Error reading carts file:', err);
         }
+    }
 
-        try {
-            const data = await fs.readFile(productsFilePath, 'utf8');
-            products = JSON.parse(data);
-        } catch (err) {
-            if (err.code === 'ENOENT') {
-                products = [];
-            } else {
-                console.error('Error reading products file:', err);
-            }
+    try {
+        const productsData = await fs.readFile(productsFilePath, 'utf8');
+        products = JSON.parse(productsData);
+    } catch (err) {
+        if (err.code === 'ENOENT') {
+            products = [];
+        } else {
+            console.error('Error reading products file:', err);
         }
-    } catch (error) {
-        console.error('Error loading data:', error);
     }
 };
 
@@ -50,7 +46,7 @@ const saveCarts = async () => {
 })();
 
 router.get('/:cid', (req, res) => {
-    const cartId = req.params.cid;
+    const cartId = parseInt(req.params.cid);
     const cart = carts.find(c => c.id === cartId);
     if (cart) {
         res.json(cart);
@@ -60,7 +56,7 @@ router.get('/:cid', (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-    const newId = carts.length > 0 ? (Math.max(...carts.map(c => parseInt(c.id))) + 1).toString() : '1';
+    const newId = carts.length > 0 ? Math.max(...carts.map(c => c.id)) + 1 : 1;
 
     const newCart = {
         id: newId,
@@ -73,8 +69,8 @@ router.post('/', async (req, res) => {
 });
 
 router.post('/:cid/product/:pid', async (req, res) => {
-    const cart = carts.find(c => c.id === req.params.cid);
-    const product = products.find(p => p.id === req.params.pid);
+    const cart = carts.find(c => c.id === parseInt(req.params.cid));
+    const product = products.find(p => p.id === parseInt(req.params.pid));
 
     if (!cart) {
         return res.status(404).json({ error: 'Cart not found' });
@@ -84,12 +80,12 @@ router.post('/:cid/product/:pid', async (req, res) => {
         return res.status(404).json({ error: 'Product not found' });
     }
 
-    const existingProductInCart = cart.products.find(p => p.product === req.params.pid);
+    const existingProductInCart = cart.products.find(p => p.product === parseInt(req.params.pid));
 
     if (existingProductInCart) {
         existingProductInCart.quantity += 1;
     } else {
-        cart.products.push({ product: req.params.pid, quantity: 1 });
+        cart.products.push({ product: parseInt(req.params.pid), quantity: 1 });
     }
 
     await saveCarts();
@@ -97,13 +93,13 @@ router.post('/:cid/product/:pid', async (req, res) => {
 });
 
 router.delete('/:cid/product/:pid', async (req, res) => {
-    const cart = carts.find(c => c.id === req.params.cid);
+    const cart = carts.find(c => c.id === parseInt(req.params.cid));
 
     if (!cart) {
         return res.status(404).json({ error: 'Cart not found' });
     }
 
-    const productIndex = cart.products.findIndex(p => p.product === req.params.pid);
+    const productIndex = cart.products.findIndex(p => p.product === parseInt(req.params.pid));
 
     if (productIndex === -1) {
         return res.status(404).json({ error: 'Product not found in cart' });

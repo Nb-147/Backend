@@ -1,6 +1,6 @@
 [
   {
-    "id": "1",
+    "id": 1,
     "title": "NOTEBOOK RAZER RZ09-0423 BLADE 17",
     "description": "Notebook: Core i7-12800H, RAM 16Gb, RTX 3060 6 GB GDDR6, display 17.3, SSD NVMe 1Tb, S.O W11",
     "code": "LPTX1",
@@ -13,7 +13,7 @@
     ]
   },
   {
-    "id": "2",
+    "id": 2,
     "title": "Auriculares Logitech PRO X WIRELESS 981-000906",
     "description": "Auriculares inalámbricos Gamer con microfono y cancelación de ruido.",
     "code": "AUD123",
@@ -26,7 +26,7 @@
     ]
   },
   {
-    "id": "3",
+    "id": 3,
     "title": "Cámara de Seguridad QIHAN SQH-1141PIX",
     "description": "Cámara de seguridad con infrarrojo.",
     "code": "CAMSEC",
@@ -39,7 +39,7 @@
     ]
   },
   {
-    "id": "4",
+    "id": 4,
     "title": "Impresora HP M507DN",
     "description": "Impresora laser monocromatica multifunción",
     "code": "IMP001",
@@ -52,7 +52,7 @@
     ]
   },
   {
-    "id": "5",
+    "id": 5,
     "title": "Samsung Tablet Galaxy A9 SM-X115 4GB/64GB",
     "description": "Tablet de alto rendimiento",
     "code": "JUG456",
@@ -65,7 +65,7 @@
     ]
   },
   {
-    "id": "6",
+    "id": 6,
     "title": "Monitor LG 34GP63A 160HZ",
     "description": "Monitor Gamer de 34 pulgadas",
     "code": "MONOJ01",
@@ -89,6 +89,18 @@
     "thumbnails": [
       "url1",
       "url2"
+    ]
+  },
+  {
+    "id": 8,
+    "title": "Memoria RAM",
+    "description": "ADATA MEMORIA XPG 32GB DDR5 PC6000",
+    "code": "RAM105",
+    "price": 179,
+    "stock": 15,
+    "category": "RAM",
+    "thumbnails": [
+      "https://www.banifox.com/imagenes/img_contenido/productos/a/bfx32gg.jpg"
     ]
   }
 ]

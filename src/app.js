@@ -1,20 +1,28 @@
 const express = require('express');
+const { create } = require('express-handlebars');
+const path = require('path');
+const http = require('http');
+const socketIo = require('socket.io');
+
 const app = express();
-const PORT = 8080;
+const server = http.createServer(app);
+const io = socketIo(server);
+
+const exphbs = create({ defaultLayout: 'main' });
+app.engine('handlebars', exphbs.engine);
+app.set('view engine', 'handlebars');
+app.set('views', path.join(__dirname, 'views'));
+
 
 app.use(express.json());
+app.use(express.static('public'));
 
-app.get('/',(req,res)=>{
-    res.setHeader('Content-Type','text/plain');
-    res.status(200).send('Server Online');
-})
-
-const productsRouter = require('./routes/products');
-const cartsRouter = require('./routes/carts');
-
+const viewRouter = require('./routes/viewRouter')(io);
+const productsRouter = require('./routes/products')(io); 
+app.use('/', viewRouter);
 app.use('/api/products', productsRouter);
-app.use('/api/carts', cartsRouter);
 
-app.listen(PORT, () => {
+const PORT = 8080;
+server.listen(PORT, () => {
     console.log(`Server online on port ${PORT}`);
 });

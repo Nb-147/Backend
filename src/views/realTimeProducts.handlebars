@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real Time Products</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <h1>Real Time Products List</h1>
+
+    <div id="productList">
+        {{#each products}}
+        <div id="product-{{this.id}}">
+            <h3>{{this.title}}</h3>
+            <p>Price: ${{this.price}}</p>
+            <p>Stock: {{this.stock}}</p>
+            <p>Category: {{this.category}}</p>
+            <p>Description: {{this.description}}</p>
+            <p>Code: {{this.code}}</p> <!-- Mostrar el code existente -->
+            <button onclick="toggleMenu('{{this.id}}')">☰</button>
+            <div id="menu-{{this.id}}" style="display: none;">
+                <button onclick="editProduct('{{this.id}}')">Modify</button>
+                <button data-id="{{this.id}}">Delete</button>
+            </div>
+        </div>
+        {{/each}}
+    </div>
+
+    <button id="addNewProductBtn">Add New Product</button>
+
+    <form id="productForm" style="display: none;">
+        <input type="text" id="title" placeholder="Title" required><br>
+        <input type="text" id="description" placeholder="Description" required><br>
+        <input type="text" id="code" placeholder="Code" required readonly><br> <!-- Code en solo lectura -->
+        <input type="number" id="price" placeholder="Price" required><br>
+        <input type="number" id="stock" placeholder="Stock" required><br>
+        <input type="text" id="category" placeholder="Category" required><br>
+        <input type="text" id="thumbnails" placeholder="Thumbnails URLs (comma separated)" required><br>
+        <button type="submit">Save Product</button>
+    </form>
+
+    <br>
+    <button id="returToHome" onclick="location.href='/index'">Products List</button>
+    <br>
+    <button id="returToHome" onclick="location.href='/'">Return to Home</button>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const productList = document.getElementById('productList');
+        const productForm = document.getElementById('productForm');
+        const addNewProductBtn = document.getElementById('addNewProductBtn');
+        let editingProductId = null;
+
+        addNewProductBtn.addEventListener('click', () => {
+            productForm.reset();
+            productForm.querySelector('#code').removeAttribute('readonly');
+            productForm.style.display = 'block';
+            window.scrollTo(0, 0);
+        });
+
+        function toggleMenu(productId) {
+            const menu = document.getElementById(`menu-${productId}`);
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function editProduct(productId) {
+            const productElement = document.getElementById(`product-${productId}`);
+            if (!productElement) {
+                return;
+            }
+            document.getElementById('title').value = productElement.querySelector('h3').innerText;
+            document.getElementById('description').value = productElement.querySelector('p:nth-of-type(4)').innerText;
+            document.getElementById('code').value = productElement.querySelector('p:nth-of-type(5)').innerText.split(': ')[1]; // Captura el valor existente del code
+            document.getElementById('price').value = productElement.querySelector('p:nth-of-type(1)').innerText.split('$')[1];
+            document.getElementById('stock').value = productElement.querySelector('p:nth-of-type(2)').innerText;
+            document.getElementById('category').value = productElement.querySelector('p:nth-of-type(3)').innerText;
+            document.getElementById('thumbnails').value = productElement.querySelector('p:nth-of-type(6)') ? productElement.querySelector('p:nth-of-type(6)').innerText : '';
+            editingProductId = parseInt(productId);
+            document.getElementById('code').setAttribute('readonly', 'readonly'); // Mantener code en solo lectura
+            productForm.style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        productForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const productData = {
+                title: document.getElementById('title').value,
+                description: document.getElementById('description').value,
+                code: document.getElementById('code').value,
+                price: parseFloat(document.getElementById('price').value),
+                stock: parseInt(document.getElementById('stock').value),
+                category: document.getElementById('category').value,
+                thumbnails: document.getElementById('thumbnails').value.split(',').map(url => url.trim())
+            };
+
+            if (editingProductId) {
+                socket.emit('updateProduct', { id: editingProductId, ...productData });
+            } else {
+                socket.emit('newProduct', productData);
+            }
+
+            productForm.style.display = 'none';
+            productForm.reset();
+            editingProductId = null;
+        });
+
+        productList.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON' && e.target.getAttribute('data-id')) {
+                const productId = parseInt(e.target.getAttribute('data-id'));
+                socket.emit('deleteProduct', productId);
+            }
+        });
+
+        socket.on('removeProduct', (productId) => {
+            const productElement = document.getElementById(`product-${productId}`);
+            if (productElement) {
+                productElement.remove();
+            }
+        });
+
+        socket.on('updateProduct', (product) => {
+            const productElement = document.getElementById(`product-${product.id}`);
+            if (productElement) {
+                productElement.querySelector('h3').innerText = product.title;
+                productElement.querySelector('p:nth-of-type(1)').innerText = `Price: $${product.price}`;
+                productElement.querySelector('p:nth-of-type(2)').innerText = product.stock;
+                productElement.querySelector('p:nth-of-type(3)').innerText = product.category;
+                productElement.querySelector('p:nth-of-type(4)').innerText = product.description;
+                productElement.querySelector('p:nth-of-type(5)').innerText = `Code: ${product.code}`; // Asegura que se muestre el code correcto
+            }
+        });
+
+        socket.on('newProduct', (newProduct) => {
+            const newProductElement = document.createElement('div');
+            newProductElement.id = `product-${newProduct.id}`;
+            newProductElement.innerHTML = 
+                `<h3>${newProduct.title}</h3>
+                <p>Price: $${newProduct.price}</p>
+                <p>Stock: ${newProduct.stock}</p>
+                <p>Category: ${newProduct.category}</p>
+                <p>Description: ${newProduct.description}</p>
+                <p>Code: ${newProduct.code}</p>
+                <button onclick="toggleMenu('${newProduct.id}')">☰</button>
+                <div id="menu-${newProduct.id}" style="display: none;">
+                    <button onclick="editProduct('${newProduct.id}')">Modify</button>
+                    <button data-id="${newProduct.id}">Delete</button>
+                </div>`;
+            productList.appendChild(newProductElement);
+        });
+    </script>
+</body>
+
+</html>
