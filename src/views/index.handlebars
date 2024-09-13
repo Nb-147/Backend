@@ -10,14 +10,35 @@
 
 <body>
     <h1>Products List</h1>
-    <ul  id="indexList">
+    <ul id="indexList">
         {{#each products}}
-        <li id="productForm">{{this.title}} - {{this.price}}</li>
+        <li id="productForm">
+            <strong>{{this.title}}</strong>
+            <hr>
+            U$S {{this.price}}
+            <hr>
+            <a id="returToHome" href="/api/products/{{this._id}}">View Details</a>
+        </li>
         {{/each}}
     </ul>
 
     <br>
+    <div class="pagination">
+        {{#if hasPrevPage}}
+        <a href="{{prevLink}}">Previous</a>
+        {{/if}}
+
+        <span>Page {{page}} of {{totalPages}}</span>
+
+        {{#if hasNextPage}}
+        <a href="{{nextLink}}">Next</a>
+        {{/if}}
+    </div>
+
+    <br>
     <button id="returToHome" onclick="location.href='/realtimeproducts'">Real Time Products</button>
+    <br>
+    <button id="returToHome" onclick="location.href='/api/carts/cart'">Cart</button>
     <br>
     <button id="returToHome" onclick="location.href='/'">Return to Home</button>
 

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart {{cart._id}}</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <h1>Cart</h1>
+
+    {{#if errorMessage}}
+        <p>{{errorMessage}}</p>
+    {{else}}
+        <ul id="productForm">
+            {{#each cart.products}}
+            <li>
+                <strong>{{this.product.title}}</strong> 
+                <hr>
+                U$S {{this.product.price}} x {{this.quantity}}
+                <form action="/api/carts/{{../cart._id}}/products/{{this.product._id}}/delete" method="POST" style="display:inline;">
+                    <button id="returToHome" type="submit">Remove</button>
+                </form>
+
+                <form action="/api/carts/{{../cart._id}}/products/{{this.product._id}}/increase" method="POST" style="display:inline;">
+                    <button type="submit">Add One</button>
+                </form>
+            </li>
+            {{/each}}
+        </ul>
+
+        <br>
+        
+        <form action="/api/carts/{{cart._id}}/clear" method="POST">
+            <button id="returToHome" type="submit">Clear Cart</button>
+        </form>
+    {{/if}}
+
+    <br>
+    <button id="returToHome" onclick="location.href='/api/products'">Back to Products List</button>
+</body>
+</html>

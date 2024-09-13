@@ -1,7 +1,13 @@
-const express = require('express');
+import express from 'express';
+import { promises as fs } from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
 const router = express.Router();
-const fs = require('fs').promises;
-const path = require('path');
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const productsFilePath = path.join(__dirname, '../data/products.json');
 
@@ -15,4 +21,4 @@ router.get('/realtimeproducts', async (req, res) => {
     res.render('realTimeProducts', { products });
 });
 
-module.exports = router;
+export default router;

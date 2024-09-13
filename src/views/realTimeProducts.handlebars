@@ -43,7 +43,9 @@
     </form>
 
     <br>
-    <button id="returToHome" onclick="location.href='/index'">Products List</button>
+    <button id="returToHome" onclick="location.href='/api/products'">Products List</button>
+    <br>
+    <button id="returToHome" onclick="location.href='/api/carts/cart'">Cart</button>
     <br>
     <button id="returToHome" onclick="location.href='/'">Return to Home</button>
 
@@ -62,10 +64,12 @@
             window.scrollTo(0, 0);
         });
 
-        function toggleMenu(productId) {
-            const menu = document.getElementById(`menu-${productId}`);
-            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-        }
+    function toggleMenu(productId) {
+    const menu = document.getElementById(`menu-${productId}`);
+    if (menu) {
+        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    }
+}
 
 function editProduct(productId) {
     const productElement = document.getElementById(`product-${productId}`);

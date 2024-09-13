@@ -1,28 +1,47 @@
-const express = require('express');
-const { create } = require('express-handlebars');
-const path = require('path');
-const http = require('http');
-const socketIo = require('socket.io');
+import express from 'express';
+import { create } from 'express-handlebars';
+import path from 'path';
+import http from 'http';
+import { Server } from 'socket.io';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import connectDB from './config/connDB.js';
+import viewRouter from './routes/viewRouter.js';
+import productsRouter from './routes/products.js';
+import cartsRouter from './routes/carts.js';
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server);
+const io = new Server(server);
 
-const exphbs = create({ defaultLayout: 'main' });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+connectDB();
+
+const exphbs = create({
+    defaultLayout: 'main',
+    runtimeOptions: {
+        allowProtoPropertiesByDefault: true,
+        allowProtoMethodsByDefault: true
+    }
+});
 app.engine('handlebars', exphbs.engine);
 app.set('view engine', 'handlebars');
 app.set('views', path.join(__dirname, 'views'));
 
-
+app.use(express.static(path.join(__dirname, '../public'))); 
 app.use(express.json());
-app.use(express.static('public'));
 
-const viewRouter = require('./routes/viewRouter')(io);
-const productsRouter = require('./routes/products')(io); 
-app.use('/', viewRouter);
+app.use((req, res, next) => {
+    req.io = io;
+    next();
+});
+
+app.use('/', viewRouter(io)); 
 app.use('/api/products', productsRouter);
+app.use('/api/carts', cartsRouter);
 
-const PORT = 8080;
-server.listen(PORT, () => {
-    console.log(`Server online on port ${PORT}`);
+server.listen(8080, () => {
+    console.log('Servidor escuchando en el puerto 8080');
 });

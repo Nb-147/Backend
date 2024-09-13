@@ -1,66 +1,68 @@
-const express = require('express');
-const fs = require('fs').promises;
-const path = require('path');
+import express from 'express';
+import { productsModel } from '../dao/models/productsModel.js';
+import { cartsModel } from '../dao/models/cartsModel.js';
+
 const router = express.Router();
 
-const productsFilePath = path.join(__dirname, '../data/products.json');
-
-async function loadProducts() {
-    const data = await fs.readFile(productsFilePath, 'utf8');
-    return JSON.parse(data);
-}
-
-async function saveProducts(products) {
-    await fs.writeFile(productsFilePath, JSON.stringify(products, null, 2));
-}
-
-module.exports = (io) => {
-    router.get('/', async (req, res) => {
-        const products = await loadProducts();
-        res.json(products);
-    });
-
-    router.post('/', async (req, res) => {
-        const products = await loadProducts();
-        const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
-        const newProduct = { ...req.body, id: newId };
-        products.push(newProduct);
-        await saveProducts(products);
-        io.emit('newProduct', newProduct);
-        res.status(201).json(newProduct);
-    });
-
-    router.put('/:id', async (req, res) => {
-        const products = await loadProducts();
-        const productId = parseInt(req.params.id);
-        const index = products.findIndex(p => p.id === productId);
-        if (index === -1) {
-            return res.status(404).json({ error: 'Product not found' });
+router.get('/', async (req, res) => {
+    try {
+        const { limit = 5, page = 1, sort, query } = req.query; 
+        const queryObject = {};
+        if (query) {
+            queryObject.$or = [
+                { category: { $regex: query, $options: 'i' } },
+                { status: query.toLowerCase() === 'available' }
+            ];
         }
-        const updatedProduct = { 
-            ...products[index], 
-            ...req.body, 
-            id: productId, 
-            code: products[index].code 
+
+        const options = {
+            limit: parseInt(limit),
+            page: parseInt(page),
+            sort: sort ? { price: sort === 'asc' ? 1 : -1 } : {},
+            lean: true 
         };
-        products[index] = updatedProduct;
-        await saveProducts(products);
-        io.emit('updateProduct', updatedProduct);
-        res.json(updatedProduct);
-    });
 
-    router.delete('/:id', async (req, res) => {
-        const products = await loadProducts();
-        const productId = parseInt(req.params.id);
-        const index = products.findIndex(p => p.id === productId);
-        if (index === -1) {
-            return res.status(404).json({ error: 'Product not found' });
+        const result = await productsModel.paginate(queryObject, options);
+
+        const response = {
+            status: 'success',
+            payload: result.docs,
+            totalPages: result.totalPages,
+            prevPage: result.hasPrevPage ? result.page - 1 : null,
+            nextPage: result.hasNextPage ? result.page + 1 : null,
+            page: result.page,
+            hasPrevPage: result.hasPrevPage,
+            hasNextPage: result.hasNextPage,
+            prevLink: result.hasPrevPage ? `/api/products?page=${result.page - 1}&limit=${limit}&sort=${sort || ''}` : null,
+            nextLink: result.hasNextPage ? `/api/products?page=${result.page + 1}&limit=${limit}&sort=${sort || ''}` : null
+        };
+
+        res.render('index', { products: response.payload, ...response });
+    } catch (error) {
+        res.status(500).json({ message: 'Error retrieving products', error });
+    }
+});
+
+router.get('/:id', async (req, res) => {
+    try {
+        const product = await productsModel.findById(req.params.id).lean();
+
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found' });
         }
-        const [deletedProduct] = products.splice(index, 1);
-        await saveProducts(products);
-        io.emit('removeProduct', deletedProduct.id);
-        res.status(204).send();
-    });
 
-    return router;
-};
+        const cartId = req.query.cartId || null;
+
+        if (!cartId) {
+            const newCart = await cartsModel.create({ products: [] });
+            return res.redirect(`/api/products/${req.params.id}?cartId=${newCart._id}`);
+        }
+
+        res.render('productDetail', { product, cartId });
+    } catch (error) {
+        console.error('Error retrieving product:', error);
+        res.status(500).json({ message: 'Error retrieving product', error });
+    }
+});
+
+export default router;

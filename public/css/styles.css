@@ -19,10 +19,47 @@ h1 {
 }
 
 #indexList {
-    gap: 20px;
+    display: flex;
+    flex-wrap: wrap;
     justify-content: center;
+    gap: 20px;
     color: #000000;
     font-size: larger;
+    list-style: none;
+    padding: 0;
+}
+
+#indexList li {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 15px;
+    width: calc(33.333% - 20px); /* Tres columnas con un margen de 20px entre ellas */
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+#indexList li strong {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 1.5em;
+}
+
+#indexList li hr {
+    margin: 10px 0;
+}
+
+#indexList li a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+#indexList li a:hover {
+    text-decoration: underline;
+}
+
+#indexList li form {
+    margin-top: 10px;
 }
 
 #productList>div {
@@ -115,4 +152,8 @@ h1 {
     border: none;
     border-radius: 4px;
     cursor: pointer;
+}
+
+.pagination {
+    color: #fff;
 }
