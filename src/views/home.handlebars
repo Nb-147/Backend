@@ -4,18 +4,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bienvenido</title>
+    <title>Welcome</title>
     <link rel="stylesheet" href="/css/styles.css">
 </head>
 
 <body>
-    <h1>Bienvenido!</h1>
-    <ul>
-        <button id="returToHome" onclick="location.href='/api/products'">Products List</button>
-        <br>
-    
-        <button id="returToHome" onclick="location.href='/realtimeproducts'">Real Time Products</button>
-    </ul>
+    <div class="home-container">
+        <h1>Welcome!</h1>
+
+        <div class="home-button-container">
+            <button class="home-button" onclick="location.href='/api/products'">Product List</button>
+            <button class="home-button" onclick="location.href='/realtimeproducts'">Real Time Products</button>
+        </div>
+    </div>
+
+    <div class="home-footer">
+        <p>&copy; 2024 My Store - All rights reserved</p>
+    </div>
 </body>
 
 </html>

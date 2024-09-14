@@ -10,6 +10,31 @@
 
 <body>
     <h1>Products List</h1>
+
+    <form action="/api/products" method="GET">
+        <label class="pagination" for="sort">Sort by Price:</label>
+        <select id="sort" name="sort" class="custom-select">
+            <option value="">Select</option>
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+        </select>
+
+        <label class="pagination" for="category">Filter by Category:</label>
+        <select id="category" name="category" class="custom-select">
+            <option value="all">All Categories</option>
+            <option value="Notebooks">Notebooks</option>
+            <option value="Auriculares">Auriculares</option>
+            <option value="Seguridad">Seguridad</option>
+            <option value="Impresora">Impresora</option>
+            <option value="Tablet">Tablet</option>
+            <option value="Monitores">Monitores</option>
+            <option value="Ropa">Ropa</option>
+            <option value="RAM">RAM</option>
+        </select>
+
+        <button class="custom-select" type="submit" class="custom-button">Apply Filters</button>
+    </form>
+
     <ul id="indexList">
         {{#each products}}
         <li id="productForm">
@@ -17,30 +42,27 @@
             <hr>
             U$S {{this.price}}
             <hr>
-            <a id="returToHome" href="/api/products/{{this._id}}">View Details</a>
+            <a class="returToHome" href="/api/products/{{this._id}}">View Details</a>
         </li>
         {{/each}}
     </ul>
 
-    <br>
     <div class="pagination">
         {{#if hasPrevPage}}
         <a href="{{prevLink}}">Previous</a>
         {{/if}}
-
         <span>Page {{page}} of {{totalPages}}</span>
-
         {{#if hasNextPage}}
         <a href="{{nextLink}}">Next</a>
         {{/if}}
     </div>
 
     <br>
-    <button id="returToHome" onclick="location.href='/realtimeproducts'">Real Time Products</button>
+    <button class="returToHome" onclick="location.href='/realtimeproducts'">Real Time Products</button>
     <br>
-    <button id="returToHome" onclick="location.href='/api/carts/cart'">Cart</button>
+    <button class="returToHome" onclick="location.href='/api/carts/cart'">Cart</button>
     <br>
-    <button id="returToHome" onclick="location.href='/'">Return to Home</button>
+    <button class="returToHome" onclick="location.href='/'">Return to Home</button>
 
 </body>
 

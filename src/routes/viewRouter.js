@@ -7,14 +7,12 @@ export default (io) => {
 
     router.get('/index', async (req, res) => {
         try {
-            // Busca o crea un carrito si no existe
             let cart = await cartsModel.findOne();
             if (!cart) {
                 cart = new cartsModel({ products: [] });
                 await cart.save();
             }
 
-            // Obtén los productos y pasa el cartId a la vista
             const products = await productsModel.find();
             res.render('index', { products, cartId: cart._id });
         } catch (error) {
@@ -24,12 +22,30 @@ export default (io) => {
 
     router.get('/realtimeproducts', async (req, res) => {
         try {
-            const products = await productsModel.find();
-            res.render('realTimeProducts', { products });
+            const { page = 1, limit = 10 } = req.query; 
+    
+            const options = {
+                page: parseInt(page), 
+                limit: parseInt(limit), 
+                lean: true 
+            };
+    
+            const result = await productsModel.paginate({}, options);
+    
+            res.render('realTimeProducts', {
+                products: result.docs,
+                hasPrevPage: result.hasPrevPage,
+                hasNextPage: result.hasNextPage,
+                prevLink: result.hasPrevPage ? `/realtimeproducts?page=${result.page - 1}&limit=${limit}` : null,
+                nextLink: result.hasNextPage ? `/realtimeproducts?page=${result.page + 1}&limit=${limit}` : null,
+                page: result.page,
+                totalPages: result.totalPages
+            });
         } catch (error) {
             res.status(500).json({ message: 'Error loading products', error });
         }
     });
+    
 
     router.get('/cart/:cartId', async (req, res) => {
         try {
@@ -46,22 +62,22 @@ export default (io) => {
     io.on('connection', (socket) => {
         socket.emit('clientConnected', { message: 'Welcome, client connected!' });
 
-        socket.on('newProduct', async (product) => {
-            try {
-                const newProduct = new productsModel(product);
-                await newProduct.save();
-                io.emit('newProduct', newProduct);
-            } catch (error) {
-                console.error('Error saving product:', error);
-            }
+        socket.on('newProductNotification', async (newProduct) => {
+            io.emit('newProduct', newProduct);
         });
 
-        socket.on('updateProduct', async (updatedProduct) => {
+        socket.on('updateProductNotification', async (updatedProduct) => {
+            io.emit('updateProduct', updatedProduct);
+        });
+
+        socket.on('deleteProduct', async (productId) => {
             try {
-                const product = await productsModel.findByIdAndUpdate(updatedProduct._id, updatedProduct, { new: true });
-                io.emit('updateProduct', product);
+                const deletedProduct = await productsModel.findByIdAndDelete(productId);
+                if (deletedProduct) {
+                    io.emit('removeProduct', productId);
+                }
             } catch (error) {
-                console.error('Error updating product:', error);
+                console.error('Error deleting product:', error);
             }
         });
     });
@@ -71,4 +87,4 @@ export default (io) => {
     });
 
     return router;
-};
+}

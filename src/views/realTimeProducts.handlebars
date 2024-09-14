@@ -13,20 +13,30 @@
 
     <div id="productList">
         {{#each products}}
-        <div id="product-{{this.id}}">
+        <div id="product-{{this._id}}">
             <h3>{{this.title}}</h3>
             <p>Price: ${{this.price}}</p>
             <p>Stock: {{this.stock}}</p>
             <p>Category: {{this.category}}</p>
             <p>Description: {{this.description}}</p>
-            <p>Code: {{this.code}}</p> 
-            <button onclick="toggleMenu('{{this.id}}')">☰</button>
-            <div id="menu-{{this.id}}" style="display: none;">
-                <button onclick="editProduct('{{this.id}}')">Modify</button>
-                <button data-id="{{this.id}}">Delete</button>
+            <p>Code: {{this.code}}</p>
+            <button onclick="toggleMenu('{{this._id}}')">☰</button>
+            <div id="menu-{{this._id}}" style="display: none;">
+                <button onclick="editProduct('{{this._id}}')">Modify</button>
+                <button onclick="deleteProduct('{{this._id}}')">Delete</button>
             </div>
         </div>
         {{/each}}
+    </div>
+    <br>
+    <div class="pagination">
+        {{#if hasPrevPage}}
+        <a href="{{prevLink}}">Previous</a>
+        {{/if}}
+        <span>Page {{page}} of {{totalPages}}</span>
+        {{#if hasNextPage}}
+        <a href="{{nextLink}}">Next</a>
+        {{/if}}
     </div>
 
     <button id="addNewProductBtn">Add New Product</button>
@@ -34,7 +44,7 @@
     <form id="productForm" style="display: none;">
         <input type="text" id="title" placeholder="Title" required><br>
         <input type="text" id="description" placeholder="Description" required><br>
-        <input type="text" id="code" placeholder="Code" required readonly><br> 
+        <input type="text" id="code" placeholder="Code" required readonly><br>
         <input type="number" id="price" placeholder="Price" required><br>
         <input type="number" id="stock" placeholder="Stock" required><br>
         <input type="text" id="category" placeholder="Category" required><br>
@@ -43,11 +53,11 @@
     </form>
 
     <br>
-    <button id="returToHome" onclick="location.href='/api/products'">Products List</button>
+    <button class="returToHome" onclick="location.href='/api/products'">Products List</button>
     <br>
-    <button id="returToHome" onclick="location.href='/api/carts/cart'">Cart</button>
+    <button class="returToHome" onclick="location.href='/api/carts/cart'">Cart</button>
     <br>
-    <button id="returToHome" onclick="location.href='/'">Return to Home</button>
+    <button class="returToHome" onclick="location.href='/'">Return to Home</button>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
@@ -64,33 +74,42 @@
             window.scrollTo(0, 0);
         });
 
-    function toggleMenu(productId) {
-    const menu = document.getElementById(`menu-${productId}`);
-    if (menu) {
-        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-    }
-}
+        function toggleMenu(productId) {
+            const menu = document.getElementById(`menu-${productId}`);
+            if (menu) {
+                menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+            }
+        }
 
-function editProduct(productId) {
-    const productElement = document.getElementById(`product-${productId}`);
-    if (!productElement) {
-        return;
-    }
+        function editProduct(productId) {
+            const productElement = document.getElementById(`product-${productId}`);
+            if (!productElement) {
+                return;
+            }
 
-    document.getElementById('title').value = productElement.querySelector('h3').innerText;
-    document.getElementById('description').value = productElement.querySelector('p:nth-of-type(4)').innerText.replace('Description: ', '');
-    document.getElementById('code').value = productElement.querySelector('p:nth-of-type(5)').innerText.split(': ')[1];
-    document.getElementById('price').value = productElement.querySelector('p:nth-of-type(1)').innerText.split('$')[1];
-    document.getElementById('stock').value = productElement.querySelector('p:nth-of-type(2)').innerText;
-    document.getElementById('category').value = productElement.querySelector('p:nth-of-type(3)').innerText.replace('Category: ', '');
-    document.getElementById('thumbnails').value = productElement.querySelector('p:nth-of-type(6)') ? productElement.querySelector('p:nth-of-type(6)').innerText : '';
+            document.getElementById('title').value = productElement.querySelector('h3').innerText;
+            document.getElementById('description').value = productElement.querySelector('p:nth-of-type(4)').innerText.replace('Description: ', '');
+            document.getElementById('code').value = productElement.querySelector('p:nth-of-type(5)').innerText.split(': ')[1];
+            document.getElementById('price').value = productElement.querySelector('p:nth-of-type(1)').innerText.split('$')[1];
+            document.getElementById('stock').value = productElement.querySelector('p:nth-of-type(2)').innerText;
+            document.getElementById('category').value = productElement.querySelector('p:nth-of-type(3)').innerText.replace('Category: ', '');
+            document.getElementById('thumbnails').value = productElement.querySelector('p:nth-of-type(6)') ? productElement.querySelector('p:nth-of-type(6)').innerText : '';
 
-    editingProductId = parseInt(productId);
-    document.getElementById('code').setAttribute('readonly', 'readonly'); 
-    productForm.style.display = 'block';
-    window.scrollTo(0, 0);
-}
+            editingProductId = productId;
+            document.getElementById('code').setAttribute('readonly', 'readonly');
+            productForm.style.display = 'block';
+            window.scrollTo(0, 0);
+        }
 
+        function deleteProduct(productId) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                fetch(`/api/products/${productId}`, { method: 'DELETE' })
+                    .then(() => {
+                        socket.emit('deleteProduct', productId);
+                    })
+                    .catch(error => console.error('Error deleting product:', error));
+            }
+        }
 
         productForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -105,22 +124,26 @@ function editProduct(productId) {
                 thumbnails: document.getElementById('thumbnails').value.split(',').map(url => url.trim())
             };
 
-            if (editingProductId) {
-                socket.emit('updateProduct', { id: editingProductId, ...productData });
-            } else {
-                socket.emit('newProduct', productData);
-            }
+            const method = editingProductId ? 'PUT' : 'POST';
+            const url = editingProductId ? `/api/products/${editingProductId}` : '/api/products';
 
-            productForm.style.display = 'none';
-            productForm.reset();
-            editingProductId = null;
-        });
-
-        productList.addEventListener('click', (e) => {
-            if (e.target.tagName === 'BUTTON' && e.target.getAttribute('data-id')) {
-                const productId = parseInt(e.target.getAttribute('data-id'));
-                socket.emit('deleteProduct', productId);
-            }
+            fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(productData)
+            })
+                .then(response => response.json())
+                .then(product => {
+                    if (editingProductId) {
+                        socket.emit('updateProductNotification', product);
+                    } else {
+                        socket.emit('newProductNotification', product);
+                    }
+                    productForm.style.display = 'none';
+                    productForm.reset();
+                    editingProductId = null;
+                })
+                .catch(error => console.error('Error saving product:', error));
         });
 
         socket.on('removeProduct', (productId) => {
@@ -131,31 +154,31 @@ function editProduct(productId) {
         });
 
         socket.on('updateProduct', (product) => {
-            const productElement = document.getElementById(`product-${product.id}`);
+            const productElement = document.getElementById(`product-${product._id}`);
             if (productElement) {
                 productElement.querySelector('h3').innerText = product.title;
                 productElement.querySelector('p:nth-of-type(1)').innerText = `Price: $${product.price}`;
                 productElement.querySelector('p:nth-of-type(2)').innerText = product.stock;
                 productElement.querySelector('p:nth-of-type(3)').innerText = product.category;
                 productElement.querySelector('p:nth-of-type(4)').innerText = product.description;
-                productElement.querySelector('p:nth-of-type(5)').innerText = `Code: ${product.code}`; 
+                productElement.querySelector('p:nth-of-type(5)').innerText = `Code: ${product.code}`;
             }
         });
 
         socket.on('newProduct', (newProduct) => {
             const newProductElement = document.createElement('div');
-            newProductElement.id = `product-${newProduct.id}`;
-            newProductElement.innerHTML = 
+            newProductElement.id = `product-${newProduct._id}`;
+            newProductElement.innerHTML =
                 `<h3>${newProduct.title}</h3>
                 <p>Price: $${newProduct.price}</p>
                 <p>Stock: ${newProduct.stock}</p>
                 <p>Category: ${newProduct.category}</p>
                 <p>Description: ${newProduct.description}</p>
                 <p>Code: ${newProduct.code}</p>
-                <button onclick="toggleMenu('${newProduct.id}')">☰</button>
-                <div id="menu-${newProduct.id}" style="display: none;">
-                    <button onclick="editProduct('${newProduct.id}')">Modify</button>
-                    <button data-id="${newProduct.id}">Delete</button>
+                <button onclick="toggleMenu('${newProduct._id}')">☰</button>
+                <div id="menu-${newProduct._id}" style="display: none;">
+                    <button onclick="editProduct('${newProduct._id}')">Modify</button>
+                    <button onclick="deleteProduct('${newProduct._id}')">Delete</button>
                 </div>`;
             productList.appendChild(newProductElement);
         });
