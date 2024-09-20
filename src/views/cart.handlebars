@@ -1,44 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cart {{cart._id}}</title>
-    <link rel="stylesheet" href="/css/styles.css">
+    <title>Cart</title>
 </head>
+
 <body>
-    <h1>Cart</h1>
-
-    {{#if errorMessage}}
-        <p>{{errorMessage}}</p>
-    {{else}}
-        <ul id="productForm">
-            {{#each cart.products}}
+    <nav class="header">
+        <ul>
             <li>
-                <strong>{{this.product.title}}</strong> 
-                <br>
-                U$S {{this.product.price}} x {{this.quantity}}
-                <form action="/api/carts/{{../cart._id}}/products/{{this.product._id}}/delete" method="POST" style="display:inline;">
-                    <button id="returToHome" type="submit">Remove</button>
-                </form>
-
-                <form action="/api/carts/{{../cart._id}}/products/{{this.product._id}}/increase" method="POST" style="display:inline;">
-                    <button type="submit">Add One</button>
-                </form>
-                <hr>
+                <button class="btn" id="clean-cart">Clear cart</button>
             </li>
-            {{/each}}
+            <li>
+                <button class="btn" id="back-home">Return to products</button>
+            </li>
         </ul>
+    </nav>
 
-        <br>
-        
-        <form action="/api/carts/{{cart._id}}/clear" method="POST">
-            <button class="returToHome" type="submit">Clear Cart</button>
-        </form>
-    {{/if}}
+    <main class="cart-container" id="cart-container">
+        <h1>Cart</h1>
+        {{#each products}}
+        <div class="cart-item">
+            <img src={{this.product.thumbnails}} alt="Producto 1" class="product-image">
+            <div class="product-details">
+                <h3>{{this.product.title}}</h3>
+                <p>{{this.product.price}}</p>
+                <div class="quantity-controls">
+                    <button class="btn-decrease" id="btn-decrease" data-id={{this.product._id}}>-</button>
+                    <span class="quantity" id="input-quantity">{{this.quantity}}</span>
+                    <button class="btn-increase" id="btn-increase" data-id={{this.product._id}}>+</button>
+                </div>
+            </div>
+            <button id="remove-item" class="remove-item" data-id={{this.product._id}}>Delete</button>
+        </div>
+        {{/each}}
 
-    <br>
-    <button class="returToHome" onclick="location.href='/api/products'">Back to Products List</button>
+        <div class="total">
+            <h2>Total: $<span id="cart-price">0</span></h2>
+        </div>
+    </main>
 </body>
+
+
+<script src="/socket.io/socket.io.js"></script>
+
+
+<script src="/js/cart.js"></script>
 
 </html>

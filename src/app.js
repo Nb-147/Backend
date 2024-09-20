@@ -1,47 +1,43 @@
 import express from 'express';
-import { create } from 'express-handlebars';
-import path from 'path';
-import http from 'http';
+import { engine } from 'express-handlebars';
+import { productsRouter } from './routes/products.js'; 
+import { cartsRouter } from './routes/carts.js'; 
+import { viewsRouter } from './routes/viewsRouter.js'; 
 import { Server } from 'socket.io';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-import connectDB from './config/connDB.js';
-import viewRouter from './routes/viewRouter.js';
-import productsRouter from './routes/products.js';
-import cartsRouter from './routes/carts.js';
+import {connDB} from './connDB.js';  
+import { ProductsManager } from "./dao/ProductsManager.js"; 
+import { CartsManager } from "./dao/CartsManager.js"; 
+import { config } from "./config/config.js";
 
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
+const app = express(); 
+const PORT = config.PORT; 
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-connectDB();
-
-const exphbs = create({
-    defaultLayout: 'main',
-    runtimeOptions: {
-        allowProtoPropertiesByDefault: true,
-        allowProtoMethodsByDefault: true
-    }
-});
-app.engine('handlebars', exphbs.engine);
-app.set('view engine', 'handlebars');
-app.set('views', path.join(__dirname, 'views'));
-
-app.use(express.static(path.join(__dirname, '../public'))); 
-app.use(express.json());
-
-app.use((req, res, next) => {
-    req.io = io;
-    next();
+const httpServer = app.listen(PORT, () => {
+    console.log(`Servidor escuchando en http://localhost:${PORT}`); 
 });
 
-app.use('/', viewRouter(io)); 
+export const io = new Server(httpServer); 
+
+connDB(); 
+
+ProductsManager.path = "./src/data/products.json"; 
+CartsManager.path = "./src/data/cart.json" 
+
+app.engine('handlebars', engine()); 
+app.set('view engine', 'handlebars'); 
+app.set('views', "./src/views"); 
+
+
+app.use(express.json()); 
+app.use(express.urlencoded({ extended: true })); 
+app.use(express.static('public')); 
+
+app.use('/', viewsRouter); 
 app.use('/api/products', productsRouter);
-app.use('/api/carts', cartsRouter);
+app.use('/api/carts', cartsRouter); 
 
-server.listen(8080, () => {
-    console.log('Servidor escuchando en el puerto 8080');
-});
+io.on("connection", socket => {
+    socket.on("message", message => {
+        console.log(message);
+    });
+})

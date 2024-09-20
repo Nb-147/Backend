@@ -1,41 +1,11 @@
 [
     {
-        "id": "1",
+        "id": "66ec62b9ce1a5bbd66a2551b",
         "products": [
             {
-                "product": "2",
-                "quantity": 2
-            }
-        ]
-    },
-    {
-        "id": "2",
-        "products": [
-            {
-                "product": "3",
-                "quantity": 1
-            },
-            {
-                "product": "5",
-                "quantity": 3
-            }
-        ]
-    },
-    {
-        "id": "3",
-        "products": [
-            {
-                "product": "4",
-                "quantity": 2
-            },
-            {
-                "product": "6",
+                "id": "66df71cb1284637fec88c1be",
                 "quantity": 1
             }
         ]
-    },
-    {
-        "id": "4",
-        "products": []
     }
 ]
