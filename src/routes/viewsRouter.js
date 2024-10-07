@@ -27,8 +27,12 @@ viewsRouter.get("/cart", async (req, res) => {
 });
 
 viewsRouter.get("/products", async (req, res) => {
-    const cartId = "66ec63f1ce1a5bbd66a25528"; 
+    const cartId = "66ec63f1ce1a5bbd66a25528";
     try {
+        if (!req.session.user) {
+            return res.redirect('/?error=not_authenticated');
+        }
+
         const products = await ProductsManager.getProducts();
         const cart = await CartsManager.getCartProducts(cartId);
 
@@ -36,11 +40,11 @@ viewsRouter.get("/products", async (req, res) => {
             return res.status(404).render("error", { error: "Products or cart not found" });
         }
 
-        let totalProducts = 0
+        let totalProducts = 0;
 
         cart.products.forEach(p => {
-            totalProducts = totalProducts + p.quantity
-        })
+            totalProducts = totalProducts + p.quantity;
+        });
 
         res.status(200).render("home", {
             title: "Home",
@@ -48,6 +52,7 @@ viewsRouter.get("/products", async (req, res) => {
             page: products.page || 1,
             totalPages: products.totalPages || 1,
             numCarts: totalProducts,
+            user: req.session.user
         });
     } catch (error) {
         console.error("Error loading products and cart:", error);
@@ -60,6 +65,10 @@ viewsRouter.get("/products", async (req, res) => {
 
 viewsRouter.get("/realtimeproducts", async (req, res) => {
     try {
+        if (!req.session.user) {
+            return res.redirect('/?error=not_authenticated');
+        }
+
         const products = await ProductsManager.getProducts();
 
         if (!products || !products.payload) {
@@ -80,5 +89,12 @@ viewsRouter.get("/realtimeproducts", async (req, res) => {
 });
 
 viewsRouter.get('/', (req, res) => {
-    res.render('root');
+    const error = req.session.error;
+    const mensaje = req.query.mensaje || null;
+    req.session.error = null; 
+    res.render('login', { error, mensaje });
+});
+
+viewsRouter.get('/register', (req, res) => {
+    res.render('register');
 });

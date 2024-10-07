@@ -1,4 +1,5 @@
 import { Cart } from './models/Cart.js';
+import { ProductsManager } from './ProductsManager.js';
 
 export class CartsManager {
     static async createCart() {
@@ -26,76 +27,48 @@ export class CartsManager {
 
     static async addProductToCart(cartId, productId) {
         try {
-            const existingProduct = await Cart.findOne({
-                _id: cartId,
-                "products.product": productId,
-            });
+            const cart = await Cart.findById(cartId);
+            if (!cart) {
+                throw new Error('Cart not found');
+            }
 
+            const product = await ProductsManager.getProductById(productId);
+            if (!product) {
+                throw new Error('Product not found');
+            }
+
+            const existingProduct = cart.products.find(p => p.product.toString() === productId);
             if (existingProduct) {
-                await Cart.updateOne(
-                    { _id: cartId, "products.product": productId },
-                    { $inc: { "products.$.quantity": 1 } }
-                );
+                existingProduct.quantity += 1;
             } else {
-                await Cart.updateOne(
-                    { _id: cartId },
-                    { $push: { products: { product: productId, quantity: 1 } } }
-                );
+                cart.products.push({ product: productId, quantity: 1 });
             }
+
+            return await cart.save();
         } catch (error) {
-            console.error("Error adding product to cart:", error); 
-            throw new Error("Error adding product to cart."); 
+            console.error("Error adding product to cart:", error);
+            throw new Error("Error adding product to cart.");
         }
     }
 
-    static async deleteProductFromCart(cartId, productId) {
+    static async updateCart(cartId, updatedProducts) {
         try {
-            await Cart.updateOne(
-                { _id: cartId },
-                { $pull: { products: { product: productId } } }
-            );
-        } catch (error) {
-            console.error("Error removing product from cart:", error); 
-            throw new Error("Error removing product from cart."); 
-        }
-    }
-
-    static async deleteAllProducts(cartId) {
-        try {
-            await Cart.updateOne(
-                { _id: cartId },
-                { $set: { products: [] } }
-            );
-        } catch (error) {
-            console.error("Error removing all products from cart:", error); 
-            throw new Error("Error removing all products from cart."); 
-        }
-    }
-
-    static async updateAllCart(cartId, products) {
-        try {
-            await Cart.updateOne(
-                { _id: cartId },
-                { $set: { products } }
-            );
-        } catch (error) {
-            console.error("Error updating cart:", error); 
-            throw new Error("Error updating cart."); 
-        }
-    }
-
-    static async updateProductQuantity(cartId, productId, quantity) {
-        try {
-            if (quantity < 0) {
-                throw new Error("Quantity cannot be negative."); 
+            for (const product of updatedProducts) {
+                const existingProduct = await ProductsManager.getProductById(product.product);
+                if (!existingProduct) {
+                    throw new Error(`Product with ID ${product.product} does not exist.`);
+                }
             }
-            await Cart.updateOne(
-                { _id: cartId, "products.product": productId },
-                { $set: { "products.$.quantity": quantity } }
-            );
+
+            const cart = await Cart.findByIdAndUpdate(cartId, { products: updatedProducts }, { new: true });
+            if (!cart) {
+                throw new Error('Cart not found');
+            }
+
+            return cart;
         } catch (error) {
-            console.error("Error updating product quantity in cart:", error); 
-            throw new Error("Error updating product quantity in cart."); 
+            console.error("Error updating cart:", error);
+            throw new Error("Error updating cart.");
         }
     }
 }

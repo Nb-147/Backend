@@ -7,8 +7,8 @@ export const connDB=async()=>{
             config.MONGO_URL,
             {dbName:config.DB_NAME}
         )
-        console.log(`DB conectada!`)
+        console.log(`DB connected!`)
     } catch (error) {
-        console.log(`Error al conectar a DB: ${error.message}`)
+        console.log(`Error connecting to DB: ${error.message}`)
     }
 }

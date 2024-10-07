@@ -3,7 +3,6 @@ import { Product } from './models/Product.js';
 export class ProductsManager {
     static async getProducts(limit = 10, page = 1, query, sort) {
         try {
-
             const filter = query
                 ? { category: { $regex: new RegExp(query, 'i') } }
                 : {};
@@ -33,45 +32,37 @@ export class ProductsManager {
 
     static async getProductById(productId) {
         try {
-            const product = await Product.findById(productId).lean();
-            if (!product) throw new Error("Product not found.");
-            return product;
+            return await Product.findById(productId);
         } catch (error) {
-            console.error("Error fetching product:", error);
-            throw new Error("Error fetching product by ID.");
+            console.error("Error retrieving product:", error);
+            return null;
         }
     }
 
-    static async addProduct(newProduct) {
+    static async addProduct(productData) {
         try {
-            await Product.create(newProduct);
+            return await Product.create(productData);
         } catch (error) {
             console.error("Error adding product:", error);
-            throw new Error("Could not add product.");
+            throw new Error("Error adding product.");
+        }
+    }
+
+    static async updateProduct(productData, productId) {
+        try {
+            return await Product.findByIdAndUpdate(productId, productData, { new: true });
+        } catch (error) {
+            console.error("Error updating product:", error);
+            throw new Error("Error updating product.");
         }
     }
 
     static async deleteProduct(productId) {
         try {
-            const deletedProduct = await Product.findByIdAndDelete(productId);
-            if (!deletedProduct) throw new Error("Product not found.");
+            return await Product.findByIdAndDelete(productId);
         } catch (error) {
             console.error("Error deleting product:", error);
-            throw new Error("Could not delete product.");
-        }
-    }
-
-    static async updateProduct(updatedProduct, productId) {
-        try {
-            const result = await Product.findByIdAndUpdate(
-                productId,
-                updatedProduct,
-                { new: true }
-            );
-            if (!result) throw new Error("Product not found for update.");
-        } catch (error) {
-            console.error("Error updating product:", error);
-            throw new Error("Could not update product.");
+            throw new Error("Error deleting product.");
         }
     }
 }
