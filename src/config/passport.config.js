@@ -1,11 +1,78 @@
 import passport from "passport";
 import local from "passport-local";
 import GitHubStrategy from "passport-github2";
+import { Strategy as JWTStrategy, ExtractJwt } from "passport-jwt";
+import bcrypt from "bcrypt";
 import User from "../dao/models/user.js";
+import { config } from "./config.js"; 
 
 export const initPassport = () => {
+    passport.use("register",
+        new local.Strategy(
+            {
+                passReqToCallback: true, 
+                usernameField: "email"
+            },
+            async (req, email, password, done) => {
+                try {
+                    const { firstName, lastName, age } = req.body;
 
-    passport.use("github", 
+                    if (!firstName || !lastName || !email || !password || !age) {
+                        return done(null, false, { message: "All fields are required." });
+                    }
+
+                    let existingUser = await User.findOne({ email });
+                    if (existingUser) {
+                        return done(null, false, { message: "User already exists." });
+                    }
+
+                    const hashedPassword = await bcrypt.hash(password, 10);
+
+                    const newUser = new User({
+                        firstName,
+                        lastName,
+                        email,
+                        age,
+                        password: hashedPassword,
+                        role: "user"
+                    });
+
+                    await newUser.save();
+
+                    return done(null, newUser);
+                } catch (error) {
+                    return done(error);
+                }
+            }
+        )
+    );
+
+    passport.use("login",
+        new local.Strategy(
+            {
+                usernameField: "email"
+            },
+            async (email, password, done) => {
+                try {
+                    const user = await User.findOne({ email });
+                    if (!user) {
+                        return done(null, false, { message: "Incorrect email." });
+                    }
+
+                    const match = await bcrypt.compare(password, user.password);
+                    if (!match) {
+                        return done(null, false, { message: "Incorrect password." });
+                    }
+
+                    return done(null, user);
+                } catch (error) {
+                    return done(error);
+                }
+            }
+        )
+    );
+
+    passport.use("github",
         new GitHubStrategy(
             {
                 clientID: "Iv23ligedxuASWuSO3Om",
@@ -47,26 +114,24 @@ export const initPassport = () => {
         )
     );
 
-    // Local Strategy
-    passport.use("login", 
-        new local.Strategy(
+    passport.use(
+        new JWTStrategy(
             {
-                usernameField: "email"
+                jwtFromRequest: ExtractJwt.fromExtractors([(req) => req.cookies.jwt]),
+                secretOrKey: config.JWT_SECRET, 
             },
-            async (username, password, done) => {
+            async (jwt_payload, done) => {
                 try {
-                    return done(null, { nombre: "Juan", email: "juan@test.com" });
+                    const user = await User.findById(jwt_payload.id);
+                    if (user) {
+                        return done(null, user);
+                    } else {
+                        return done(null, false);
+                    }
                 } catch (error) {
-                    return done(error);
+                    return done(error, false);
                 }
-            }   
+            }
         )
     );
-
-    passport.serializeUser((user, done) => {
-        return done(null, user);
-    });
-    passport.deserializeUser((user, done) => {
-        return done(null, user);
-    });
 };

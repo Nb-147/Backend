@@ -1,12 +1,10 @@
 import { Product } from './models/Product.js';
+import mongoose from 'mongoose';
 
 export class ProductsManager {
     static async getProducts(limit = 10, page = 1, query, sort) {
         try {
-            const filter = query
-                ? { category: { $regex: new RegExp(query, 'i') } }
-                : {};
-
+            const filter = query ? { category: { $regex: new RegExp(query, 'i') } } : {};
             const sorting = sort ? { price: sort === "asc" ? 1 : -1 } : {};
 
             const response = await Product.paginate(filter, {
@@ -31,6 +29,9 @@ export class ProductsManager {
     }
 
     static async getProductById(productId) {
+        if (!mongoose.Types.ObjectId.isValid(productId)) {
+            throw new Error("Invalid product ID.");
+        }
         try {
             return await Product.findById(productId);
         } catch (error) {
@@ -49,6 +50,9 @@ export class ProductsManager {
     }
 
     static async updateProduct(productData, productId) {
+        if (!mongoose.Types.ObjectId.isValid(productId)) {
+            throw new Error("Invalid product ID.");
+        }
         try {
             return await Product.findByIdAndUpdate(productId, productData, { new: true });
         } catch (error) {
@@ -58,6 +62,9 @@ export class ProductsManager {
     }
 
     static async deleteProduct(productId) {
+        if (!mongoose.Types.ObjectId.isValid(productId)) {
+            throw new Error("Invalid product ID.");
+        }
         try {
             return await Product.findByIdAndDelete(productId);
         } catch (error) {

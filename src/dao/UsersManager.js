@@ -1,12 +1,12 @@
-import { userModel } from "./models/userModel";
+import User from "./models/user.js";
 
-export class UsuariosManager{
-    static async getUserBy(filtro={}){
-        return await userModel.findOne(filtro).lean()
+export class UsersManager {
+    static async getUserBy(filter = {}) {
+        return await User.findOne(filter).lean();
     }
 
-    static async addUser(usuario={}){
-        let nuevoUsuario=await usuariosModelo.create(usuario)
-        return nuevoUsuario.toJSON()
+    static async addUser(user = {}) {
+        let newUser = await User.create(user);
+        return newUser.toJSON();
     }
 }

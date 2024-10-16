@@ -1,5 +1,6 @@
 import { Cart } from './models/Cart.js';
 import { ProductsManager } from './ProductsManager.js';
+import mongoose from 'mongoose';
 
 export class CartsManager {
     static async createCart() {
@@ -13,6 +14,9 @@ export class CartsManager {
     }
 
     static async getCartProducts(cartId) {
+        if (!mongoose.Types.ObjectId.isValid(cartId)) {
+            throw new Error("Invalid cart ID.");
+        }
         try {
             const cart = await Cart.findById(cartId).populate("products.product").lean();
             if (!cart) {
@@ -26,6 +30,9 @@ export class CartsManager {
     }
 
     static async addProductToCart(cartId, productId) {
+        if (!mongoose.Types.ObjectId.isValid(cartId) || !mongoose.Types.ObjectId.isValid(productId)) {
+            throw new Error('Invalid cart or product ID');
+        }
         try {
             const cart = await Cart.findById(cartId);
             if (!cart) {
@@ -52,11 +59,16 @@ export class CartsManager {
     }
 
     static async updateCart(cartId, updatedProducts) {
+        if (!mongoose.Types.ObjectId.isValid(cartId)) {
+            throw new Error("Invalid cart ID.");
+        }
         try {
-            for (const product of updatedProducts) {
-                const existingProduct = await ProductsManager.getProductById(product.product);
+            const validationPromises = updatedProducts.map(product => ProductsManager.getProductById(product.product));
+            const productsExistence = await Promise.all(validationPromises);
+
+            for (const existingProduct of productsExistence) {
                 if (!existingProduct) {
-                    throw new Error(`Product with ID ${product.product} does not exist.`);
+                    throw new Error("One or more products do not exist.");
                 }
             }
 

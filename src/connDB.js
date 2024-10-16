@@ -1,11 +1,12 @@
 import mongoose from "mongoose"
-import { config } from "./config/config.js"
 
-export const connDB=async()=>{
+export const connDB=async(url="", db="")=>{
     try {
         await mongoose.connect(
-            config.MONGO_URL,
-            {dbName:config.DB_NAME}
+            url,
+            {
+                dbName: db
+            }
         )
         console.log(`DB connected!`)
     } catch (error) {

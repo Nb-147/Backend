@@ -4,64 +4,43 @@ import { productsRouter } from './routes/products.js';
 import { cartsRouter } from './routes/carts.js'; 
 import { viewsRouter } from './routes/viewsRouter.js'; 
 import sessionsRouter from './routes/sessionsRouter.js';
-import session from 'express-session';
-import MongoStore from 'connect-mongo';
+import cookieParser from 'cookie-parser';
 import { Server } from 'socket.io';
 import { connDB } from './connDB.js';  
-import { ProductsManager } from "./dao/ProductsManager.js"; 
-import { CartsManager } from "./dao/CartsManager.js"; 
 import { config } from "./config/config.js";
 import { initPassport } from './config/passport.config.js';
 import passport from 'passport';
+import { auth } from './middlewares/auth.js';
 
 const app = express(); 
 
-connDB(); 
+connDB(config.MONGO_URL, config.DB_NAME); 
 
-app.use(session({
-    store: MongoStore.create({
-        mongoUrl: config.MONGO_URL,
-        dbName: config.DB_NAME,
-        ttl: 24 * 60 * 60, 
-    }),
-    secret: 'your-secret-key', 
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        maxAge: 1000 * 60 * 60 * 24, 
-        secure: false, 
-    }
-}));
+app.use(express.json()); 
+app.use(express.urlencoded({ extended: true })); 
+app.use(express.static('public')); 
+app.use(cookieParser());
 
 initPassport();
-app.use(passport.initialize());
-app.use(passport.session());
-
-const PORT = config.PORT; 
-
-const httpServer = app.listen(PORT, () => {
-    console.log(`Servidor escuchando en http://localhost:${PORT}`); 
-});
-
-export const io = new Server(httpServer); 
-
-ProductsManager.path = "./src/data/products.json"; 
-CartsManager.path = "./src/data/cart.json"; 
+app.use(passport.initialize()); 
 
 app.engine('handlebars', engine()); 
 app.set('view engine', 'handlebars'); 
 app.set('views', "./src/views"); 
 
-app.use(express.json()); 
-app.use(express.urlencoded({ extended: true })); 
-app.use(express.static('public')); 
-
 app.use('/', viewsRouter); 
-app.use('/api/products', productsRouter);
-app.use('/api/carts', cartsRouter);
+app.use('/api/products', auth, productsRouter); 
+app.use('/api/carts', auth, cartsRouter);
 app.use('/api/sessions', sessionsRouter);
 
+const PORT = config.PORT; 
+const httpServer = app.listen(PORT, () => {
+    console.log(`Servidor escuchando en http://localhost:${PORT}`); 
+});
+export const io = new Server(httpServer); 
+
 io.on("connection", socket => {
+    console.log('Nuevo cliente conectado');
     socket.on("message", message => {
         console.log(message);
     });
