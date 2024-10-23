@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt"
 
-export const generaHash=password=>bcrypt.hashSync(password, bcrypt.genSaltSync(10))
+export const generaHash = async (password) => await bcrypt.hash(password, 10);
 export const validaHash=(pass, hash)=>bcrypt.compareSync(pass, hash)
 
 // export const procesaErrores=(res, error)=>{

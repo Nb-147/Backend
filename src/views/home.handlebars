@@ -13,22 +13,21 @@
     <ul class="nav-list">
       <li class="nav-item welcome-message">
         {{#if user}}
-          <span>Bienvenido, {{user.firstName}} {{user.lastName}} ({{user.role}})</span>
+        <span>Welcome, {{user.first_name}} {{user.last_name}} ({{user.role}})</span>
         {{/if}}
       </li>
       <li class="nav-item cart-info">
-        <span class="cart-icon">🛒</span>
-        <a href="/cart" class="btn btn-cart" id="cart-view">View Cart</a>
+        <a href="/cart" class="btn btn-cart" id="cart-view">🛒 Cart</a>
         <span class="cart-count" id="cart-count">{{numCarts}}</span>
       </li>
       <li class="nav-item logout">
-        <button onclick="location.href='/api/sessions/logout'" class="btn logout-btn">Logout</button>
+        <button onclick="location.href='/api/sessions/logout'" class="btn logout-btn">Logout❌</button>
       </li>
     </ul>
   </nav>
 
   <h1>TI Store</h1>
-  
+
   <div class="filter-section">
     <input type="text" id="search-title" placeholder="Search by product title" />
 
@@ -49,7 +48,7 @@
       <option value="asc">Price: Low to High</option>
       <option value="desc">Price: High to Low</option>
     </select>
-    
+
     <button id="apply-filter" class="btn btn-primary">Apply Filter</button>
   </div>
 
@@ -60,14 +59,15 @@
     <span>Page <span id="current-page">{{page}}</span> of {{totalPages}}</span>
     <button class="btn btn-primary" id="btn-next">Next</button>
   </div>
+  <br>
+  <br>
 
-  <div class="home-footer">
+  <footer class="home-footer">
     <p>&copy; 2024 My Store - All rights reserved</p>
-  </div>
+  </footer>
 
+  <script src="/socket.io/socket.io.js"></script>
   <script src="/js/home.js"></script>
-  <script src="/js/cart.js"></script>
-  
 </body>
 
 </html>

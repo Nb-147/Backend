@@ -9,12 +9,18 @@
 
 <body>
     <nav class="header">
-        <ul>
-            <li>
-                <button class="btn" id="clean-cart">Clear cart</button>
+        <ul class="nav-list">
+            <li class="nav-item welcome-message">
+                {{#if user}}
+                <span>Welcome, {{user.first_name}} {{user.last_name}} ({{user.role}})</span>
+                {{/if}}
             </li>
-            <li>
-                <button class="btn" id="back-home">Return to products</button>
+            <li class="nav-item cart-info">
+                <a href="/cart" class="btn btn-cart" id="cart-view">🛒 Cart</a>
+                <span class="cart-count" id="cart-count">{{numCarts}}</span>
+            </li>
+            <li class="nav-item logout">
+                <button onclick="location.href='/api/sessions/logout'" class="btn logout-btn">Logout❌</button>
             </li>
         </ul>
     </nav>
@@ -26,7 +32,7 @@
             <img src={{this.product.thumbnails}} alt="Producto 1" class="product-image">
             <div class="product-details">
                 <h3>{{this.product.title}}</h3>
-                <p>{{this.product.price}}</p>
+                <p>U$S {{this.product.price}}</p>
                 <div class="quantity-controls">
                     <button class="btn-decrease" id="btn-decrease" data-id={{this.product._id}}>-</button>
                     <span class="quantity" id="input-quantity">{{this.quantity}}</span>
@@ -38,15 +44,26 @@
         {{/each}}
 
         <div class="total">
-            <h2>Total: $<span id="cart-price">0</span></h2>
+            <h2>Total: U$S <span id="cart-price">0</span></h2>
         </div>
+
+        <div class="additional-buttons">
+            <button onclick="location.href='/products'" class="btn-secondary">Return to products</button>
+            <button class="btn" id="clean-cart">Clear cart</button>
+        </div>
+
     </main>
+
+    <br>
+
+    <footer class="home-footer">
+        <p>&copy; 2024 My Store - All rights reserved</p>
+    </footer>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/cart.js"></script>
+
+
 </body>
-
-
-<script src="/socket.io/socket.io.js"></script>
-
-
-<script src="/js/cart.js"></script>
 
 </html>

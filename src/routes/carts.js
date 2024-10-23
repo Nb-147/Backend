@@ -1,10 +1,12 @@
 import Router from 'express';
 import { CartsManager } from '../dao/CartsManager.js';
 import { isValidObjectId } from "mongoose";
+import { authenticateJWT } from '../middlewares/authJWT.js'; 
+import { io } from '../app.js';
 
 export const cartsRouter = Router();
 
-cartsRouter.get("/:cid", async (req, res) => {
+cartsRouter.get("/:cid", authenticateJWT, async (req, res) => {
     const { cid } = req.params;
 
     if (!cid) return res.status(400).json({ error: "Cart ID not provided" });
@@ -22,12 +24,15 @@ cartsRouter.get("/:cid", async (req, res) => {
     }
 });
 
-cartsRouter.get("/", async (req, res) => {
-
-    const cartId = "66ec63f1ce1a5bbd66a25528"; 
-    const products = await CartsManager.getCartProducts(cartId);
-
+cartsRouter.get("/", authenticateJWT, async (req, res) => {
     try {
+        const cartId = req.user.cart; 
+        if (!cartId || !isValidObjectId(cartId)) {
+            return res.status(400).json({ error: "Invalid cart ID for the logged-in user" });
+        }
+
+        const products = await CartsManager.getCartProducts(cartId);
+
         res.status(200).json(products);
     } catch (error) {
         console.error("Error fetching cart products:", error);
@@ -38,7 +43,7 @@ cartsRouter.get("/", async (req, res) => {
     }
 });
 
-cartsRouter.put("/:cid", async (req, res) => {
+cartsRouter.put("/:cid", authenticateJWT, async (req, res) => {
     const { cid } = req.params;
     const products = req.body;
 
@@ -50,6 +55,7 @@ cartsRouter.put("/:cid", async (req, res) => {
 
     try {
         await CartsManager.updateAllCart(cid, products);
+        io.emit('cartUpdated', updatedCart);
         res.status(200).json({ message: "Cart updated successfully" });
     } catch (error) {
         console.error("Error updating cart:", error);
@@ -60,7 +66,7 @@ cartsRouter.put("/:cid", async (req, res) => {
     }
 });
 
-cartsRouter.put("/:cid/products/:pid", async (req, res) => {
+cartsRouter.put("/:cid/products/:pid", authenticateJWT, async (req, res) => {
     const { cid, pid } = req.params;
     const { quantity } = req.body;
 
@@ -87,7 +93,7 @@ cartsRouter.put("/:cid/products/:pid", async (req, res) => {
     }
 });
 
-cartsRouter.post("/", async (req, res) => {
+cartsRouter.post("/", authenticateJWT, async (req, res) => {
     try {
         const cart = await CartsManager.createCart();
         res.status(201).json({ message: "Cart created", cart });
@@ -100,11 +106,16 @@ cartsRouter.post("/", async (req, res) => {
     }
 });
 
-cartsRouter.post("/:cid/products/:pid", async (req, res) => {
-    const { cid, pid } = req.params;
+cartsRouter.post("/:cid/products/:pid", authenticateJWT, async (req, res) => {
+    const { cid, pid } = req.params; 
+    const userCart = req.user.cart; 
+
+    if (userCart !== cid) {
+        return res.status(403).json({ error: "You are not allowed to modify this cart" });
+    }
 
     if (!cid || !pid) {
-        return res.status(400).json({ error: "Missing required parameters" });
+        return res.status(400).json({ error: "Missing cart or product ID" });
     }
 
     if (!isValidObjectId(cid) || !isValidObjectId(pid)) {
@@ -112,7 +123,7 @@ cartsRouter.post("/:cid/products/:pid", async (req, res) => {
     }
 
     try {
-        await CartsManager.addProductToCart(cid, pid);
+        await CartsManager.addProductToCart(cid, pid); 
         res.status(200).json({ message: "Product added to cart successfully" });
     } catch (error) {
         console.error("Error adding product to cart:", error);
@@ -123,19 +134,21 @@ cartsRouter.post("/:cid/products/:pid", async (req, res) => {
     }
 });
 
-cartsRouter.delete("/:cid/products/:pid", async (req, res) => {
-    const { cid, pid } = req.params;
+cartsRouter.delete("/:pid", authenticateJWT, async (req, res) => {
+    const { pid } = req.params;
+    const userCart = req.user.cart; 
 
-    if (!cid || !pid) {
-        return res.status(400).json({ error: "Missing required parameters" });
+    if (!userCart || !pid) {
+        return res.status(400).json({ error: "Missing cart or product ID" });
     }
 
-    if (!isValidObjectId(cid) || !isValidObjectId(pid)) {
+    if (!isValidObjectId(userCart) || !isValidObjectId(pid)) {
         return res.status(400).json({ message: "Invalid cart or product ID" });
     }
 
     try {
-        await CartsManager.deleteProductFromCart(cid, pid);
+        await CartsManager.deleteProductFromCart(userCart, pid);
+        io.emit('cartUpdated', updatedCart);
         res.status(200).json({ message: "Product removed from cart successfully" });
     } catch (error) {
         console.error("Error removing product from cart:", error);
@@ -146,17 +159,17 @@ cartsRouter.delete("/:cid/products/:pid", async (req, res) => {
     }
 });
 
-cartsRouter.delete("/:cid", async (req, res) => {
-    const { cid } = req.params;
+cartsRouter.delete("/", authenticateJWT, async (req, res) => {
+    const userCart = req.user.cart; 
 
-    if (!cid) {
+    if (!userCart) {
         return res.status(400).json({ error: "Cart ID not provided" });
     }
 
-    if (!isValidObjectId(cid)) return res.status(400).json({ message: "Invalid cart ID" });
+    if (!isValidObjectId(userCart)) return res.status(400).json({ message: "Invalid cart ID" });
 
     try {
-        await CartsManager.deleteAllProducts(cid);
+        await CartsManager.deleteAllProducts(userCart);
         res.status(200).json({ message: "All products have been removed from the cart" });
     } catch (error) {
         console.error("Error removing all products from cart:", error);

@@ -35,12 +35,12 @@ app.use('/api/sessions', sessionsRouter);
 
 const PORT = config.PORT; 
 const httpServer = app.listen(PORT, () => {
-    console.log(`Servidor escuchando en http://localhost:${PORT}`); 
+    console.log(`Server listening on http://localhost:${PORT}`); 
 });
 export const io = new Server(httpServer); 
 
 io.on("connection", socket => {
-    console.log('Nuevo cliente conectado');
+    console.log('New client connected');
     socket.on("message", message => {
         console.log(message);
     });

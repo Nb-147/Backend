@@ -1,15 +1,17 @@
 import mongoose from 'mongoose';
+import { preSave } from '../../middlewares/preSave.js';
+
 
 const userSchema = new mongoose.Schema({
-    firstName: { type: String, required: [true, 'First name is required'] },
-    lastName: { type: String, required: [true, 'Last name is required'] },
+    first_name: { type: String, required: [true, 'First name is required'] },
+    last_name: { type: String, required: [true, 'Last name is required'] },
     email: { 
         type: String, 
         required: [true, 'Email is required'], 
         unique: true,
         match: [/^[^@\s]+@[^@\s]+\.[^@\s]+$/, 'Invalid email format'] 
     },
-    age: { type: Number, required: [true, 'Age is required'] },
+    age: { type: Number, required: true, default: 18 }, 
     password: { 
         type: String, 
         required: [true, 'Password is required'],
@@ -19,6 +21,10 @@ const userSchema = new mongoose.Schema({
     role: { type: String, default: 'user' }
 });
 
+preSave(userSchema);
+
 const User = mongoose.model('User', userSchema);
 
 export default User;
+
+//Clave de los usuarios: Coder123, tambien para el de adminCoder@coder.com 

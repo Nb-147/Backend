@@ -1,28 +1,13 @@
 import { Router } from "express";
 import { ProductsManager } from "../dao/ProductsManager.js";
 import { CartsManager } from "../dao/CartsManager.js";
-import jwt from 'jsonwebtoken';
-import { config } from '../config/config.js';
+import { authenticateJWT } from '../middlewares/authJWT.js';
+import { authWithRoles } from '../middlewares/auth.js'; 
 
 export const viewsRouter = Router();
 
-const authenticateJWT = (req, res, next) => {
-  const token = req.cookies.jwt;
-  if (!token) {
-    return res.redirect("/?error=not_authenticated");
-  }
-
-  jwt.verify(token, config.JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.redirect("/?error=not_authenticated");
-    }
-    req.user = user;
-    next();
-  });
-};
-
 viewsRouter.get("/cart", authenticateJWT, async (req, res) => {
-  const cartId = req.user.cart || "66ec63f1ce1a5bbd66a25528"; 
+  const cartId = req.user.cart;  
   try {
     const cartProducts = await CartsManager.getCartProducts(cartId);
 
@@ -45,7 +30,7 @@ viewsRouter.get("/cart", authenticateJWT, async (req, res) => {
 });
 
 viewsRouter.get("/products", authenticateJWT, async (req, res) => {
-  const cartId = req.user.cart || "66ec63f1ce1a5bbd66a25528"; 
+  const cartId = req.user.cart; 
   try {
     const products = await ProductsManager.getProducts();
     const cart = await CartsManager.getCartProducts(cartId);
@@ -76,7 +61,7 @@ viewsRouter.get("/products", authenticateJWT, async (req, res) => {
   }
 });
 
-viewsRouter.get("/realtimeproducts", authenticateJWT, async (req, res) => {
+viewsRouter.get("/realtimeproducts", authenticateJWT, authWithRoles(['admin']), async (req, res) => {
   try {
     const products = await ProductsManager.getProducts();
 

@@ -10,6 +10,7 @@ const priceFilter = document.getElementById("price-filter");
 
 let maxPage;
 let currentPageNumber;
+let userCartId; 
 
 const getProducts = async (filters = {}) => {
     try {
@@ -60,10 +61,10 @@ const getProducts = async (filters = {}) => {
                     <div class="card-content">
                         <h3 class="title-product">${prod.title}</h3>
                         <p class="description-product">${prod.description}</p>
-                        <p class="price-product">$${prod.price}</p>
+                        <p class="price-product">U$S ${prod.price}</p>
                     </div>
                     <footer class="card-footer">
-                        <button class="btn-addToCart" data-id="${prod.id}">Add to cart</button> 
+                        <button class="btn-addToCart" data-id="${prod._id}">Add to cart</button> 
                     </footer>
                 </div>
             `
@@ -90,6 +91,22 @@ if (!page || isNaN(page)) {
 
 getProducts();
 
+const getUserCartId = async () => {
+    try {
+        const res = await fetch('/api/sessions/current');
+        if (!res.ok) {
+            throw new Error('Error fetching user cart');
+        }
+        const data = await res.json();
+        userCartId = data.user.cart; 
+        await updateHomeCartUI(); 
+    } catch (err) {
+        console.error('Error fetching user cart:', err);
+    }
+};
+
+getUserCartId();
+
 btnNext.addEventListener('click', () => {
     if (currentPageNumber < maxPage) {
         page++;
@@ -108,11 +125,10 @@ cartView.addEventListener("click", () => {
     location.href = `/cart`;
 });
 
-const CART = "66ec63f1ce1a5bbd66a25528"; 
-
-const updateCartUI = async () => {
+const updateHomeCartUI = async () => {
     try {
-        const res = await fetch(`/api/carts/${CART}`);
+        if (!userCartId) return; 
+        const res = await fetch(`/api/carts/${userCartId}`);
         const data = await res.json();
 
         const cartContainer = document.getElementById("cart-count");
@@ -134,7 +150,8 @@ containerHome.addEventListener("click", async (e) => {
         const id = e.target.dataset.id;
 
         try {
-            const res = await fetch(`/api/carts/${CART}/products/${id}`, {
+            if (!userCartId) return; 
+            const res = await fetch(`/api/carts/${userCartId}/products/${id}`, {
                 method: "POST",
             });
 
@@ -142,7 +159,7 @@ containerHome.addEventListener("click", async (e) => {
                 throw new Error(`Error adding product to cart: ${res.statusText}`); 
             }
 
-            await updateCartUI();
+            await updateHomeCartUI();
         } catch (err) {
             console.error("Error adding product to cart:", err); 
         }

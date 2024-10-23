@@ -1,10 +1,6 @@
 const cartPrice = document.getElementById("cart-price");
 const cleanCart = document.getElementById("clean-cart");
-const backToHome = document.getElementById("back-home");
-const removeItem = document.getElementById("remove-item");  
-const cartContainer = document.getElementById("cart-container"); 
-
-const CART = "66ec63f1ce1a5bbd66a25528"; 
+const cartContainer = document.getElementById("cart-container");
 
 const socket = io();
 
@@ -12,9 +8,22 @@ socket.on("cartUpdated", (updatedCart) => {
     updateCartUI(updatedCart);
 });
 
+const getUserCartId = async () => {
+    try {
+        const res = await fetch('/api/sessions/current');
+        if (!res.ok) {
+            throw new Error('Error fetching user cart');
+        }
+        const data = await res.json();
+        return data.user.cart; 
+    } catch (err) {
+        console.error('Error fetching user cart:', err);
+    }
+};
+
 const getCartProducts = async () => {
     try {
-        const res = await fetch(`/api/carts/${CART}`);
+        const res = await fetch(`/api/carts`);
         const data = await res.json();
         if (data.products.length === 0) {
             cartContainer.innerHTML = "<h1>There are no products in the cart</h1>"; 
@@ -33,55 +42,86 @@ const getCartProducts = async () => {
 getCartProducts();
 
 cleanCart.addEventListener("click", async () => {
-    await fetch(`/api/carts/${CART}`, {
-        method: "DELETE",
-    });
-});
-
-backToHome.addEventListener("click", () => {
-    location.href = "/products";
+    try {
+        const res = await fetch(`/api/carts`, {
+            method: "DELETE",
+        });
+        if (res.ok) {
+            socket.emit("cartUpdated", {}); 
+            getCartProducts(); 
+        }
+    } catch (err) {
+        console.log("Error clearing cart:", err);
+    }
 });
 
 cartContainer.addEventListener("click", async (e) => {
-    if (e.target.classList.contains("remove-item")) {
-        const id = e.target.dataset.id;
-        await fetch(`/api/carts/${CART}/products/${id}`, {
-            method: "DELETE",
-        });
-        e.target.closest(".cart-item").remove(document.getElementById(id))
-    }
+    const productId = e.target.dataset.id;
+
     if (e.target.classList.contains("btn-increase")) {
         const quantity = e.target.previousElementSibling;
-        quantity.innerHTML = parseInt(quantity.textContent) + 1;
-        console.log(parseInt(quantity.textContent) + 1)
-        updateQuantity(e.target.dataset.id, parseInt(quantity.textContent));
+        await updateQuantity(productId, parseInt(quantity.textContent) + 1);
+        getCartProducts(); 
     }
 
     if (e.target.classList.contains("btn-decrease")) {
         const quantity = e.target.nextElementSibling;
-        if (quantity.textContent <= 1) {
-            return;
+        if (parseInt(quantity.textContent) > 1) {
+            await updateQuantity(productId, parseInt(quantity.textContent) - 1);
+            getCartProducts(); 
         }
-        quantity.innerHTML = parseInt(quantity.textContent) - 1;
-        updateQuantity(e.target.dataset.id, parseInt(quantity.textContent));
+    }
+
+    if (e.target.classList.contains("remove-item")) {
+        await deleteProductFromCart(productId);
+        getCartProducts(); 
     }
 });
 
-const updateQuantity = async (id, quantity) => {
-    await fetch(`/api/carts/${CART}/products/${id}`, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ quantity }),
-    });
+const updateQuantity = async (productId, quantity) => {
+    try {
+        const userCartId = await getUserCartId(); 
+        if (!userCartId) throw new Error('No cartId found');
+
+        const res = await fetch(`/api/carts/${userCartId}/products/${productId}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ quantity }),
+        });
+
+        if (!res.ok) {
+            throw new Error(`Failed to update product quantity`);
+        }
+    } catch (error) {
+        console.error("Error updating product quantity:", error);
+    }
+};
+
+const deleteProductFromCart = async (productId) => {
+    try {
+        const userCartId = await getUserCartId();
+        if (!userCartId) throw new Error('No cartId found');
+
+        const res = await fetch(`/api/carts/${userCartId}/products/${productId}`, {
+            method: "DELETE"
+        });
+        if (!res.ok) {
+            throw new Error("Error removing product from cart.");
+        }
+
+        socket.emit("cartUpdated", {}); 
+    } catch (err) {
+        console.error("Error removing product from cart:", err);
+    }
 };
 
 function updateCartUI(cart) {
     cartContainer.innerHTML = ''; 
     cart.products.forEach(product => {
-        cartContainer.innerHTML += `
-            <div class="cart-item">
+        cartContainer.innerHTML += 
+            `<div class="cart-item">
                 <p>${product.product.title}</p>
                 <p>Quantity: ${product.quantity}</p>
             </div>`;

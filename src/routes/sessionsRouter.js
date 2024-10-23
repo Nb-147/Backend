@@ -4,12 +4,13 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import User from '../dao/models/user.js';
 import { config } from '../config/config.js';
+import { CartsManager } from '../dao/CartsManager.js';
 
 const router = express.Router();
 
 router.get("/error", (req, res) => {
     res.setHeader('Content-Type', 'application/json');
-    return res.status(401).json({ error: `Error al autenticar` });
+    return res.status(401).json({ error: 'Error al autenticar' });
 });
 
 router.get('/register', (req, res) => {
@@ -17,9 +18,9 @@ router.get('/register', (req, res) => {
 });
 
 router.post('/register', async (req, res) => {
-    const { firstName, lastName, email, password, age } = req.body;
+    const { first_name, last_name, email, password, age } = req.body;
 
-    if (!firstName || !lastName || !email || !password || age === undefined) {
+    if (!first_name || !last_name || !email || !password || age === undefined) {
         return res.render('register', { error: 'All fields are required' });
     }
 
@@ -44,8 +45,8 @@ router.post('/register', async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(password, 10);
         const newUser = new User({
-            firstName,
-            lastName,
+            first_name,
+            last_name,
             email,
             password: hashedPassword,
             age: Number(age),
@@ -74,14 +75,20 @@ router.post('/login', async (req, res) => {
             return res.redirect('/?error=Invalid email or password');
         }
 
+        if (!user.cart) {
+            const cart = await CartsManager.createCart(); 
+            user.cart = cart._id;
+            await user.save();
+        }
+
         const token = jwt.sign(
             {
                 id: user._id,
                 email: user.email,
-                firstName: user.firstName,
-                lastName: user.lastName,
+                first_name: user.first_name,
+                last_name: user.last_name,
                 role: user.role,
-                cart: user.cart  
+                cart: user.cart 
             },
             config.JWT_SECRET,
             { expiresIn: '1h' }
@@ -102,12 +109,18 @@ router.get("/callbackGithub",
         try {
             const user = req.user;
 
+            if (!user.cart) {
+                const cart = await CartsManager.createCart(); 
+                user.cart = cart._id;
+                await user.save();
+            }
+
             const token = jwt.sign(
                 {
                     id: user._id,
                     email: user.email,
-                    firstName: user.firstName || '',
-                    lastName: user.lastName || '',
+                    first_name: user.first_name || '',
+                    last_name: user.last_name || '',
                     role: user.role || 'usuario',
                     cart: user.cart  
                 },
