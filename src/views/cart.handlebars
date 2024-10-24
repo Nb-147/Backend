@@ -43,17 +43,16 @@
         </div>
         {{/each}}
 
-        <div class="total">
-            <h2>Total: U$S <span id="cart-price">0</span></h2>
-        </div>
-
-        <div class="additional-buttons">
-            <button onclick="location.href='/products'" class="btn-secondary">Return to products</button>
-            <button class="btn" id="clean-cart">Clear cart</button>
-        </div>
-
     </main>
 
+    <div class="total cart-container">
+        <h2>Total: U$S <span id="cart-price">0</span></h2>
+    </div>
+
+    <div class="additional-buttons">
+        <button class="btn" id="clean-cart">Clear cart</button>
+        <button onclick="location.href='/products'" class="btn-secondary">Return to products</button>
+    </div>
     <br>
 
     <footer class="home-footer">
@@ -62,7 +61,6 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="/js/cart.js"></script>
-
 
 </body>
 

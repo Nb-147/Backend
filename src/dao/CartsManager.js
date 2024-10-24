@@ -44,19 +44,21 @@ export class CartsManager {
                 throw new Error('Product not found');
             }
     
-            const existingProduct = cart.products.find(p => p.product.toString() === productId);
+            const existingProduct = cart.products.find(p => p.product.equals(productId));
             if (existingProduct) {
                 existingProduct.quantity += 1;
             } else {
                 cart.products.push({ product: productId, quantity: 1 });
             }
     
-            return await cart.save();
+            await cart.save();
+            return cart;
         } catch (error) {
             console.error("Error adding product to cart:", error);
             throw new Error("Error adding product to cart.");
         }
     }
+    
 
     static async updateCart(cartId, updatedProducts) {
         if (!mongoose.Types.ObjectId.isValid(cartId)) {

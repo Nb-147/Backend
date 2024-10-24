@@ -23,11 +23,33 @@ const getUserCartId = async () => {
 
 const getCartProducts = async () => {
     try {
-        const res = await fetch(`/api/carts`);
+        const userCartId = await getUserCartId(); 
+        if (!userCartId) throw new Error('No cartId found');
+
+        const res = await fetch(`/api/carts/${userCartId}`);
         const data = await res.json();
         if (data.products.length === 0) {
             cartContainer.innerHTML = "<h1>There are no products in the cart</h1>"; 
         } else {
+            cartContainer.innerHTML = ""; 
+            data.products.forEach((product) => {
+                cartContainer.innerHTML += `
+                    <div class="cart-item">
+                        <img src=${product.product.thumbnails} alt="Producto" class="product-image">
+                        <div class="product-details">
+                            <h3>${product.product.title}</h3>
+                            <p>U$S ${product.product.price}</p>
+                            <div class="quantity-controls">
+                                <button class="btn-decrease" data-id=${product.product._id}>-</button>
+                                <span class="quantity">${product.quantity}</span>
+                                <button class="btn-increase" data-id=${product.product._id}>+</button>
+                            </div>
+                        </div>
+                        <button class="remove-item" data-id=${product.product._id}>Delete</button>
+                    </div>
+                `;
+            });
+
             cartPrice.innerHTML = data.products.reduce((acc, item) => {
                 if (item.product && item.product.price) {
                     return acc + item.product.price * item.quantity;
@@ -39,16 +61,21 @@ const getCartProducts = async () => {
         console.log(err);
     }
 };
-getCartProducts();
+getCartProducts(); 
 
 cleanCart.addEventListener("click", async () => {
     try {
-        const res = await fetch(`/api/carts`, {
+        const userCartId = await getUserCartId(); 
+        if (!userCartId) throw new Error('No cartId found');
+
+        const res = await fetch(`/api/carts/${userCartId}`, {
             method: "DELETE",
         });
         if (res.ok) {
             socket.emit("cartUpdated", {}); 
             getCartProducts(); 
+
+            cartPrice.innerHTML = '0'; 
         }
     } catch (err) {
         console.log("Error clearing cart:", err);
@@ -60,14 +87,14 @@ cartContainer.addEventListener("click", async (e) => {
 
     if (e.target.classList.contains("btn-increase")) {
         const quantity = e.target.previousElementSibling;
-        await updateQuantity(productId, parseInt(quantity.textContent) + 1);
+        await updateQuantity(productId, parseInt(quantity.textContent) + 1); 
         getCartProducts(); 
     }
 
     if (e.target.classList.contains("btn-decrease")) {
         const quantity = e.target.nextElementSibling;
         if (parseInt(quantity.textContent) > 1) {
-            await updateQuantity(productId, parseInt(quantity.textContent) - 1);
+            await updateQuantity(productId, parseInt(quantity.textContent) - 1); 
             getCartProducts(); 
         }
     }
@@ -94,6 +121,7 @@ const updateQuantity = async (productId, quantity) => {
         if (!res.ok) {
             throw new Error(`Failed to update product quantity`);
         }
+        socket.emit("cartUpdated", {}); 
     } catch (error) {
         console.error("Error updating product quantity:", error);
     }
@@ -117,13 +145,31 @@ const deleteProductFromCart = async (productId) => {
     }
 };
 
-function updateCartUI(cart) {
+const updateCartUI = (cart) => {
     cartContainer.innerHTML = ''; 
+    let totalPrice = 0;
+
     cart.products.forEach(product => {
-        cartContainer.innerHTML += 
-            `<div class="cart-item">
-                <p>${product.product.title}</p>
-                <p>Quantity: ${product.quantity}</p>
-            </div>`;
+        const { product: prodDetails, quantity } = product;
+
+        cartContainer.innerHTML += `
+            <div class="cart-item">
+                <img src="${prodDetails.thumbnails}" alt="Producto" class="product-image">
+                <div class="product-details">
+                    <h3>${prodDetails.title}</h3>
+                    <p>U$S ${prodDetails.price}</p>
+                    <div class="quantity-controls">
+                        <button class="btn-decrease" data-id="${prodDetails._id}">-</button>
+                        <span class="quantity">${quantity}</span>
+                        <button class="btn-increase" data-id="${prodDetails._id}">+</button>
+                    </div>
+                </div>
+                <button class="remove-item" data-id="${prodDetails._id}">Delete</button>
+            </div>
+        `;
+
+        totalPrice += prodDetails.price * quantity;
     });
-}
+
+    document.getElementById('cart-price').textContent = totalPrice.toFixed(2);
+};
