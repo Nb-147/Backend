@@ -1,6 +1,13 @@
+import dotenv from "dotenv"
+
+dotenv.config({
+    path: "./src/.env",
+    override:true
+})
+
 export const config = {
-    MONGO_URL: "mongodb+srv://Nico:49809075@cluster0.kqthm.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
-    DB_NAME: "Storage",
-    PORT: 8080,
-    JWT_SECRET: "StorageBruno123"
+    PORT: process.env.PORT,
+    MONGO_URL: process.env.MONGO_URL,
+    DB_NAME: process.env.DB_NAME,
+    JWT_SECRET: process.env.JWT_SECRET
 }

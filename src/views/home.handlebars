@@ -1,73 +1,87 @@
-<!DOCTYPE html>
 <html lang="en">
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Products</title>
-</head>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Products</title>
+  </head>
 
-<body>
+  <body>
 
-  <nav class="header">
-    <ul class="nav-list">
-      <li class="nav-item welcome-message">
-        {{#if user}}
-        <span>Welcome, {{user.first_name}} {{user.last_name}} ({{user.role}})</span>
-        {{/if}}
-      </li>
-      <li class="nav-item cart-info">
-        <a href="/cart" class="btn btn-cart" id="cart-view">🛒 Cart</a>
-        <span class="cart-count" id="cart-count">{{numCarts}}</span>
-      </li>
-      <li class="nav-item logout">
-        <button onclick="location.href='/api/sessions/logout'" class="btn logout-btn">Logout❌</button>
-      </li>
-    </ul>
-  </nav>
+    <nav class="header">
+      <ul class="nav-list">
+        <li class="nav-item welcome-message">
+          {{#if user}}
+            <span>Welcome,
+              {{user.first_name}}
+              {{user.last_name}}
+              ({{user.role}})</span>
+          {{/if}}
+        </li>
+        <li class="nav-item cart-info">
+          <a href="/cart" class="btn btn-cart" id="cart-view">🛒 Cart</a>
+          <span class="cart-count" id="cart-count">{{numCarts}}</span>
+        </li>
+        <li class="nav-item logout">
+          <button
+            onclick="location.href='/api/sessions/logout'"
+            class="btn logout-btn"
+          >Logout❌</button>
+        </li>
+      </ul>
+    </nav>
 
-  <h1>TI Store</h1>
+    <h1>TI Store</h1>
 
-  <div class="filter-section">
-    <input type="text" id="search-title" placeholder="Search by product title" />
+    <div class="centered-input">
+      <input type="text" id="search-title" placeholder="Search by product title"/>
+      <button id="search-button" class="btn btn-primary">Search</button>
+    </div>
 
-    <select id="category-filter">
-      <option value="">All Categories</option>
-      <option value="Notebooks">Notebooks</option>
-      <option value="Auriculares">Auriculares</option>
-      <option value="Seguridad">Seguridad</option>
-      <option value="Impresoras">Impresoras</option>
-      <option value="Tablet">Tablet</option>
-      <option value="Monitores">Monitores</option>
-      <option value="Ropa">Ropa</option>
-      <option value="RAM">RAM</option>
-    </select>
+    <br />
+    
+    <div>
 
-    <select id="price-filter">
-      <option value="">Sort by Price</option>
-      <option value="asc">Price: Low to High</option>
-      <option value="desc">Price: High to Low</option>
-    </select>
+      <select id="category-filter" class="btn btn-primary">
+        <option value="">All Categories</option>
+        <option value="Notebooks">Notebooks</option>
+        <option value="Auriculares">Auriculares</option>
+        <option value="Seguridad">Seguridad</option>
+        <option value="Impresoras">Impresoras</option>
+        <option value="Tablet">Tablet</option>
+        <option value="Monitores">Monitores</option>
+        <option value="Ropa">Ropa</option>
+        <option value="RAM">RAM</option>
+      </select>
 
-    <button id="apply-filter" class="btn btn-primary">Apply Filter</button>
-  </div>
+      <select id="price-filter" class="btn btn-primary">
+        <option value="">Sort by Price</option>
+        <option value="asc">Price: Low to High</option>
+        <option value="desc">Price: High to Low</option>
+      </select>
 
-  <div class="container" id="container-home"></div>
+      <button id="apply-filter" class="btn btn-primary">Apply Filter</button>
+    </div>
 
-  <div class="pagination-container">
-    <button class="btn btn-primary" id="btn-prev">Previous</button>
-    <span>Page <span id="current-page">{{page}}</span> of {{totalPages}}</span>
-    <button class="btn btn-primary" id="btn-next">Next</button>
-  </div>
-  <br>
-  <br>
+    <div class="container" id="container-home"></div>
 
-  <footer class="home-footer">
-    <p>&copy; 2024 My Store - All rights reserved</p>
-  </footer>
+    <div class="pagination-container">
+      <button class="btn btn-primary" id="btn-prev">Previous</button>
+      <span>Page
+        <span id="current-page">{{page}}</span>
+        of
+        {{totalPages}}</span>
+      <button class="btn btn-primary" id="btn-next">Next</button>
+    </div>
+    <br />
+    <br />
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="/js/home.js"></script>
-</body>
+    <footer class="home-footer">
+      <p>&copy; 2024 My Store - All rights reserved</p>
+    </footer>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/home.js"></script>
+  </body>
 
 </html>
