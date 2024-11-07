@@ -42,17 +42,18 @@
             <button id="remove-item" class="remove-item" data-id={{this.product._id}}>Delete</button>
         </div>
         {{/each}}
-
     </main>
 
     <div class="total cart-container">
         <h2>Total: U$S <span id="cart-price">0</span></h2>
     </div>
 
-    <div class="additional-buttons">
-        <button class="btn" id="clean-cart">Clear cart</button>
-        <button onclick="location.href='/products'" class="btn-secondary">Return to products</button>
-    </div>
+<div class="additional-buttons">
+    <button class="btn" id="clean-cart">Clear cart</button>
+    <button onclick="location.href='/products'" class="btn-secondary">Return to products</button>
+    <button class="btn-primary" id="buy-now">Buy Now</button>
+</div>
+
     <br>
 
     <footer class="home-footer">

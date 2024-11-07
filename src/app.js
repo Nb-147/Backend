@@ -1,7 +1,7 @@
 import express from 'express';
 import { engine } from 'express-handlebars';
-import { productsRouter } from './routes/products.js'; 
-import { cartsRouter } from './routes/carts.js'; 
+import { productsRouter } from './routes/productsRouter.js'; 
+import { cartsRouter } from './routes/cartsRouter.js'; 
 import { viewsRouter } from './routes/viewsRouter.js'; 
 import sessionsRouter from './routes/sessionsRouter.js';
 import cookieParser from 'cookie-parser';
@@ -10,11 +10,10 @@ import { connDB } from './connDB.js';
 import { config } from "./config/config.js";
 import { initPassport } from './config/passport.config.js';
 import passport from 'passport';
-import { auth } from './middlewares/auth.js';
 
 const app = express(); 
 
-connDB(config.MONGO_URL, config.DB_NAME); 
+await connDB(config.MONGO_URL, config.DB_NAME); 
 
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true })); 
@@ -29,8 +28,8 @@ app.set('view engine', 'handlebars');
 app.set('views', "./src/views"); 
 
 app.use('/', viewsRouter); 
-app.use('/api/products', auth, productsRouter); 
-app.use('/api/carts', auth, cartsRouter);
+app.use('/api/products', productsRouter); 
+app.use('/api/carts', cartsRouter);
 app.use('/api/sessions', sessionsRouter);
 
 const PORT = config.PORT; 

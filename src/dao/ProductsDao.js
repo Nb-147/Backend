@@ -1,4 +1,4 @@
-import { Product } from './models/Product.js';
+import { Product } from './models/productModel.js';
 import mongoose from 'mongoose';
 
 export class ProductsManager {

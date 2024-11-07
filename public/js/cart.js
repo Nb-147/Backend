@@ -1,13 +1,16 @@
 const cartPrice = document.getElementById("cart-price");
 const cleanCart = document.getElementById("clean-cart");
 const cartContainer = document.getElementById("cart-container");
+const buyNowButton = document.getElementById("buy-now");
 
 const socket = io();
 
+// Evento para actualizar la interfaz del carrito cuando hay cambios
 socket.on("cartUpdated", (updatedCart) => {
     updateCartUI(updatedCart);
 });
 
+// Obtiene el ID del carrito del usuario actual
 const getUserCartId = async () => {
     try {
         const res = await fetch('/api/sessions/current');
@@ -21,6 +24,7 @@ const getUserCartId = async () => {
     }
 };
 
+// Obtiene los productos del carrito y los muestra en la interfaz
 const getCartProducts = async () => {
     try {
         const userCartId = await getUserCartId(); 
@@ -63,6 +67,7 @@ const getCartProducts = async () => {
 };
 getCartProducts(); 
 
+// Evento para limpiar el carrito
 cleanCart.addEventListener("click", async () => {
     try {
         const userCartId = await getUserCartId(); 
@@ -82,6 +87,7 @@ cleanCart.addEventListener("click", async () => {
     }
 });
 
+// Eventos para aumentar, disminuir o eliminar productos del carrito
 cartContainer.addEventListener("click", async (e) => {
     const productId = e.target.dataset.id;
 
@@ -105,6 +111,7 @@ cartContainer.addEventListener("click", async (e) => {
     }
 });
 
+// Actualiza la cantidad de un producto en el carrito
 const updateQuantity = async (productId, quantity) => {
     try {
         const userCartId = await getUserCartId(); 
@@ -127,6 +134,7 @@ const updateQuantity = async (productId, quantity) => {
     }
 };
 
+// Elimina un producto del carrito
 const deleteProductFromCart = async (productId) => {
     try {
         const userCartId = await getUserCartId();
@@ -145,6 +153,7 @@ const deleteProductFromCart = async (productId) => {
     }
 };
 
+// Actualiza la interfaz del carrito
 const updateCartUI = (cart) => {
     cartContainer.innerHTML = ''; 
     let totalPrice = 0;
@@ -173,3 +182,38 @@ const updateCartUI = (cart) => {
 
     document.getElementById('cart-price').textContent = totalPrice.toFixed(2);
 };
+
+// Evento para la compra del carrito
+buyNowButton.addEventListener("click", async () => {
+    try {
+        await purchaseCart();
+    } catch (error) {
+        console.error('Error while buying cart:', error);
+    }
+});
+
+// Función para realizar la compra del carrito
+async function purchaseCart() {
+    try {
+        const userCartId = await getUserCartId();
+        if (!userCartId) throw new Error('No cartId found');
+
+        const response = await fetch(`/api/carts/${userCartId}/purchase`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const ticketData = await response.json();
+            window.location.href = `/cart/purchase?ticket=${ticketData.ticketId}`;
+        } else {
+            const errorData = await response.json();
+            alert(errorData.error || 'Purchase failed');
+        }
+    } catch (error) {
+        console.error('Error during purchase:', error);
+        alert('An error occurred while processing your purchase.');
+    }
+}

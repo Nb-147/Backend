@@ -3,8 +3,9 @@ import local from "passport-local";
 import GitHubStrategy from "passport-github2";
 import { Strategy as JWTStrategy, ExtractJwt } from "passport-jwt";
 import { generaHash, validaHash } from "../utils/utils.js"; 
-import User from "../dao/models/user.js";
+import User from "../dao/models/userModel.js";
 import { config } from "./config.js"; 
+import { UserDTO } from "../dto/userDto.js"; 
 
 const searchToken = (req) => {
     let token = null;
@@ -21,7 +22,7 @@ export const initPassport = () => {
         new local.Strategy(
             {
                 passReqToCallback: true, 
-                usernameField: "email"
+                usernameField: 'email'
             },
             async (req, email, password, done) => {
                 try {
@@ -44,7 +45,7 @@ export const initPassport = () => {
                         email,
                         age: Number(age), 
                         password: hashedPassword,
-                        role: "user"
+                        role: 'user'
                     });
 
                     await newUser.save();
@@ -136,7 +137,8 @@ export const initPassport = () => {
                 try {
                     const user = await User.findById(jwt_payload.id).lean(); 
                     if (user) {
-                        return done(null, user);
+                        const userDTO = new UserDTO(user); 
+                        return done(null, userDTO);
                     } else {
                         return done(null, false);
                     }

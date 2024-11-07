@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart</title>
+</head>
+
+<body>
+    <nav class="header">
+        <ul class="nav-list">
+            <li class="nav-item welcome-message">
+                {{#if user}}
+                <span>Welcome, {{user.first_name}} {{user.last_name}} ({{user.role}})</span>
+                {{/if}}
+            </li>
+            <li class="nav-item cart-info">
+                <a href="/cart" class="btn btn-cart" id="cart-view">🛒 Cart</a>
+                <span class="cart-count" id="cart-count">{{numCarts}}</span>
+            </li>
+            <li class="nav-item logout">
+                <button onclick="location.href='/api/sessions/logout'" class="btn logout-btn">Logout❌</button>
+            </li>
+        </ul>
+    </nav>
+
+   <main class="ticket-container" id="ticket-container"></main>
+    <h1>Purchase Ticket</h1>
+    {{#if ticket}}
+    <div class="ticket-details">
+        <p><strong>Ticket Code:</strong> {{ticket.code}}</p>
+        <p><strong>Purchase Date and Time:</strong> {{ticket.purchase_datetime}}</p>
+        <p><strong>Total Amount:</strong> U$S {{ticket.amount}}</p>
+        <p><strong>Purchaser:</strong> {{ticket.purchaser}}</p>
+    </div>
+    {{else}}
+    <p>No ticket available for display. Please complete a purchase to view the ticket.</p>
+    {{/if}}
+</main>
+
+<div class="additional-buttons">
+    <button onclick="location.href='/products'" class="btn-secondary">Return to products</button>
+</div>
+<br>
+
+<footer class="home-footer">
+    <p>&copy; 2024 My Store - All rights reserved</p>
+</footer>
+
+</body>
+
+</html>
