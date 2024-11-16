@@ -180,15 +180,7 @@ const purchaseCart = async (req, res) => {
     const userEmail = req.user.email;
 
     if (!isValidObjectId(cid)) {
-        res.setHeader("Content-Type", "application/json");
         return res.status(400).json({ error: `Invalid cart ID format: ${cid}` });
-    }
-
-    if (req.user.cart !== cid) {
-        res.setHeader("Content-Type", "application/json");
-        return res
-            .status(400)
-            .json({ error: "The cart does not belong to the authenticated user" });
     }
 
     try {
@@ -201,32 +193,43 @@ const purchaseCart = async (req, res) => {
         const productsNotPurchased = [];
 
         for (const item of cart.products) {
-            const product = await ProductsManager.getProductById(item.product);
+            const productId = item.product._id || item.product;
+
+            if (!isValidObjectId(productId)) {
+                productsNotPurchased.push({ product: productId.toString(), reason: 'Invalid product ID' });
+                continue;
+            }
+
+            const product = await ProductsManager.getProductById(productId);
+            if (!product) {
+                productsNotPurchased.push({ product: productId.toString(), reason: 'Product not found' });
+                continue;
+            }
+
             if (product.stock >= item.quantity) {
                 product.stock -= item.quantity;
                 totalAmount += product.price * item.quantity;
-                await ProductsManager.updateProduct(product, product._id);
+                await ProductsManager.updateProduct(productId, { stock: product.stock });
             } else {
-                productsNotPurchased.push(item.product);
+                productsNotPurchased.push({ product: productId.toString(), reason: 'Insufficient stock' });
             }
         }
 
+        let newTicket = null;
         if (totalAmount > 0) {
-            const newTicket = new Ticket({
+            newTicket = new Ticket({
                 amount: totalAmount,
                 purchaser: userEmail,
             });
             await newTicket.save();
+            newTicket = newTicket.toObject(); 
         }
 
-        cart.products = cart.products.filter((item) =>
-            productsNotPurchased.includes(item.product)
-        );
-        await CartsManager.updateAllCart(cid, cart.products);
+        await CartsManager.updateCart(cid, []);
 
-        res.status(200).json({
-            message: "Purchase completed",
-            productsNotPurchased,
+        return res.status(200).json({
+            ticket: newTicket,
+            productsNotPurchased
         });
     } catch (error) {
         console.error("Error during cart purchase:", error);

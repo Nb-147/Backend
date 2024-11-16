@@ -22,34 +22,34 @@ export const initPassport = () => {
         new local.Strategy(
             {
                 passReqToCallback: true, 
-                usernameField: 'email'
+                usernameField: "email"
             },
             async (req, email, password, done) => {
                 try {
                     const { first_name, last_name, age } = req.body;
-
+    
                     if (!first_name || !last_name || !email || !password || !age) {
                         return done(null, false, { message: "All fields are required." });
                     }
-
+    
                     let existingUser = await User.findOne({ email });
                     if (existingUser) {
                         return done(null, false, { message: "User already exists." });
                     }
-
+    
                     const hashedPassword = generaHash(password);
-
+    
                     const newUser = new User({
                         first_name,
                         last_name,
                         email,
                         age: Number(age), 
                         password: hashedPassword,
-                        role: 'user'
+                        role: "user" 
                     });
-
+    
                     await newUser.save();
-
+    
                     return done(null, newUser);
                 } catch (error) {
                     return done(error);

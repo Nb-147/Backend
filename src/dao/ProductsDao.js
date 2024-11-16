@@ -33,7 +33,7 @@ export class ProductsManager {
             throw new Error("Invalid product ID.");
         }
         try {
-            return await Product.findById(productId);
+            return await Product.findById(productId).lean();
         } catch (error) {
             console.error("Error retrieving product:", error);
             return null;
@@ -49,12 +49,12 @@ export class ProductsManager {
         }
     }
 
-    static async updateProduct(productData, productId) {
+    static async updateProduct(productId, productData) {
         if (!mongoose.Types.ObjectId.isValid(productId)) {
             throw new Error("Invalid product ID.");
         }
         try {
-            return await Product.findByIdAndUpdate(productId, productData, { new: true });
+            return await Product.findByIdAndUpdate(productId, productData, { new: true, lean: true });
         } catch (error) {
             console.error("Error updating product:", error);
             throw new Error("Error updating product.");

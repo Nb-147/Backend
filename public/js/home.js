@@ -125,7 +125,6 @@ cartView.addEventListener("click", () => {
     location.href = `/cart`;
 });
 
-// Lógica para ejecutar la búsqueda al hacer clic en el botón "Search"
 searchButton.addEventListener("click", () => {
     const title = searchTitle.value.trim();
     applyFiltersWithPage(1, { title });

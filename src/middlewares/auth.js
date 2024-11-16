@@ -33,11 +33,15 @@ export const authWithRoles = (roles = []) => {
         }
 
         if (!req.user || !req.user.role) {
+            console.log(`Authorization failed: Missing user or role`);
             res.setHeader('Content-Type', 'application/json');
             return res.status(403).json({ error: `Unauthorized - role missing` });
         }
 
+        console.log(`User Role: ${req.user.role}, Required Roles: ${roles}`);
+        
         if (!roles.includes(req.user.role.toLowerCase())) {
+            console.log(`Authorization failed: Insufficient privileges`);
             res.setHeader('Content-Type', 'application/json');
             return res.status(403).json({ error: `Unauthorized - insufficient privileges` });
         }

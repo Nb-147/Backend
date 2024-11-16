@@ -10,6 +10,7 @@ viewsRouter.get('/products', authenticateJWT, viewsController.getProducts);
 viewsRouter.get('/realtimeproducts', authenticateJWT, authWithRoles(['admin']), viewsController.getRealTimeProducts);
 viewsRouter.get('/', viewsController.getLogin);
 viewsRouter.get('/register', viewsController.getRegister);
+viewsRouter.get('/cart/purchase/:ticketId', authenticateJWT, viewsController.getTicketPurchase);
 
 
 export default viewsRouter;

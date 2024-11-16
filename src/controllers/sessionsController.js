@@ -1,10 +1,4 @@
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import User from '../dao/models/userModel.js';
-import { config } from '../config/config.js';
-import { CartsManager } from '../dao/CartsDao.js';
-import { UserDTO } from '../dto/userDto.js';
-
+import { registerUser, loginUser, handleGithubCallback, verifyToken } from '../services/sessionsServices.js';
 
 const getError = (req, res) => {
     res.setHeader('Content-Type', 'application/json');
@@ -16,133 +10,29 @@ const getRegister = (req, res) => {
 };
 
 const postRegister = async (req, res) => {
-    const { first_name, last_name, email, password, age } = req.body;
-
-    if (!first_name || !last_name || !email || !password || age === undefined) {
-        return res.render('register', { error: 'All fields are required' });
-    }
-
-    if (isNaN(age) || age <= 0) {
-        return res.render('register', { error: 'Age must be a positive number' });
-    }
-
-    if (password.length < 6) {
-        return res.render('register', { error: 'Password must be at least 6 characters long' });
-    }
-
-    const emailPattern = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-    if (!emailPattern.test(email)) {
-        return res.render('register', { error: 'Invalid email format' });
-    }
-
     try {
-        const userExists = await User.findOne({ email });
-        if (userExists) {
-            return res.render('register', { error: 'User already exists' });
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const newCart = await CartsManager.createCart(); // Crear un nuevo carrito
-
-        const newUser = new User({
-            first_name,
-            last_name,
-            email,
-            password: hashedPassword,
-            age: Number(age),
-            role: 'usuario',
-            cart: newCart._id // Asignar el carrito al usuario
-        });
-
-        await newUser.save();
-
-        // Crear un JWT que incluya el `cartId` recién creado
-        const token = jwt.sign(
-            {
-                id: newUser._id,
-                email: newUser.email,
-                first_name: newUser.first_name,
-                last_name: newUser.last_name,
-                role: newUser.role,
-                cart: newUser.cart
-            },
-            config.JWT_SECRET,
-            { expiresIn: '1h' }
-        );
-
-        // Guardar el token en una cookie para autenticación
+        const token = await registerUser(req.body);
         res.cookie('jwt', token, { httpOnly: true, secure: false });
-
         return res.redirect('/products');
     } catch (error) {
-        console.error('Error registering user:', error);
-        res.render('register', { error: 'Internal server error' });
+        res.render('register', { error: error.message });
     }
 };
 
 const postLogin = async (req, res) => {
-    const { email, password } = req.body;
-
     try {
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.redirect('/?error=Invalid email or password');
-        }
-
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.redirect('/?error=Invalid email or password');
-        }
-
-        if (!user.cart) {
-            const cart = await CartsManager.createCart();
-            user.cart = cart._id;
-            await user.save();
-        }
-
-        const token = jwt.sign(
-            {
-                id: user._id,
-                email: user.email,
-                first_name: user.first_name,
-                last_name: user.last_name,
-                role: user.role,
-                cart: user.cart
-            },
-            config.JWT_SECRET,
-            { expiresIn: '1h' }
-        );
+        const token = await loginUser(req.body.email, req.body.password);
         res.cookie('jwt', token, { httpOnly: true, secure: false });
         return res.redirect('/products');
     } catch (error) {
         console.error('Error during login:', error);
-        return res.redirect('/?error=Internal server error');
+        return res.redirect('/?error=Invalid email or password');
     }
 };
 
-
 const githubCallback = async (req, res) => {
     try {
-        const user = req.user;
-
-        if (!user.cart) {
-            const cart = await CartsManager.createCart();
-            user.cart = cart._id;
-            await user.save();
-        }
-
-        const token = jwt.sign(
-            {
-                id: user._id,
-                email: user.email,
-                first_name: user.first_name || '',
-                last_name: user.last_name || '',
-                role: user.role || 'usuario',
-                cart: user.cart
-            },
-            config.JWT_SECRET,
-            { expiresIn: '1h' }
-        );
+        const token = await handleGithubCallback(req.user);
         res.cookie('jwt', token, { httpOnly: true, secure: false });
         return res.redirect('/products');
     } catch (error) {
@@ -158,14 +48,11 @@ const getLogout = (req, res) => {
 
 const getCurrent = (req, res) => {
     const token = req.cookies.jwt;
-
     if (!token) {
         return res.status(401).json({ error: 'Access denied, no token provided' });
     }
-
     try {
-        const decoded = jwt.verify(token, config.JWT_SECRET);
-        const userDTO = new UserDTO(decoded);
+        const userDTO = verifyToken(token);
         res.json({ message: 'Authenticated user', user: userDTO });
     } catch (error) {
         return res.status(401).json({ error: 'Invalid token' });

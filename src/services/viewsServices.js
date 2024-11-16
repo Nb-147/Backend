@@ -1,7 +1,8 @@
 import { ProductsManager } from '../dao/ProductsDao.js';
 import { CartsManager } from '../dao/CartsDao.js';
+import Ticket from '../dao/models/ticketModel.js';
 
-export const getCartProducts = async (cartId) => {
+const getCartProducts = async (cartId) => {
     try {
         const cartProducts = await CartsManager.getCartProducts(cartId);
         if (!cartProducts || !cartProducts.products) {
@@ -14,7 +15,7 @@ export const getCartProducts = async (cartId) => {
     }
 };
 
-export const getAllProductsWithCart = async (cartId) => {
+const getAllProductsWithCart = async (cartId) => {
     try {
         const products = await ProductsManager.getProducts();
         const cart = await CartsManager.getCartProducts(cartId);
@@ -40,7 +41,7 @@ export const getAllProductsWithCart = async (cartId) => {
     }
 };
 
-export const getAllProducts = async () => {
+const getAllProducts = async () => {
     try {
         const products = await ProductsManager.getProducts();
         if (!products || !products.payload) {
@@ -53,15 +54,22 @@ export const getAllProducts = async () => {
     }
 };
 
-export const getTicketById = async (ticketId) => {
+const getTicketById = async (ticketId) => {
     try {
-        const ticket = await TicketModel.findById(ticketId).lean();
+        const ticket = await Ticket.findById(ticketId).lean();
         if (!ticket) {
             throw new Error('Ticket not found');
         }
         return ticket;
     } catch (error) {
-        console.error('Error loading ticket:', error);
-        throw new Error(error.message);
+        console.error('Error fetching ticket:', error);
+        throw new Error('Error fetching ticket data');
     }
+};
+
+export default {
+    getCartProducts,
+    getAllProductsWithCart,
+    getAllProducts,
+    getTicketById,
 };

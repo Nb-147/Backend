@@ -1,6 +1,5 @@
 import * as productsService from '../services/productsServices.js';
 
-
 const getProductById = async (req, res) => {
     const { pid } = req.params;
     try {

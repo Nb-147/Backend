@@ -59,26 +59,15 @@ export class CartsManager {
         }
     }
     
-
     static async updateCart(cartId, updatedProducts) {
         if (!mongoose.Types.ObjectId.isValid(cartId)) {
             throw new Error("Invalid cart ID.");
         }
         try {
-            const validationPromises = updatedProducts.map(product => ProductsManager.getProductById(product.product));
-            const productsExistence = await Promise.all(validationPromises);
-
-            for (const existingProduct of productsExistence) {
-                if (!existingProduct) {
-                    throw new Error("One or more products do not exist.");
-                }
-            }
-
-            const cart = await Cart.findByIdAndUpdate(cartId, { products: updatedProducts }, { new: true });
+            const cart = await Cart.findByIdAndUpdate(cartId, { products: updatedProducts }, { new: true }).lean();
             if (!cart) {
                 throw new Error('Cart not found');
             }
-
             return cart;
         } catch (error) {
             console.error("Error updating cart:", error);
@@ -96,7 +85,7 @@ export class CartsManager {
                 throw new Error('Cart not found');
             }
 
-            const productInCart = cart.products.find(p => p.product._id.toString() === productId || p.product.toString() === productId);
+            const productInCart = cart.products.find(p => p.product.equals(productId));
             if (!productInCart) {
                 throw new Error('Product not found in cart');
             }
@@ -120,7 +109,7 @@ export class CartsManager {
                 throw new Error('Cart not found');
             }
 
-            const productIndex = cart.products.findIndex(p => p.product._id.toString() === productId || p.product.toString() === productId);
+            const productIndex = cart.products.findIndex(p => p.product.equals(productId));
             if (productIndex === -1) {
                 throw new Error('Product not found in cart');
             }

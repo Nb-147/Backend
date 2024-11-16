@@ -1,4 +1,4 @@
-import * as viewsService from '../services/viewsServices.js';
+import viewsService from '../services/viewsServices.js';
 
 const getCart = async (req, res) => {
     const cartId = req.user.cart;
@@ -67,7 +67,7 @@ const getTicketPurchase = async (req, res) => {
     const { ticketId } = req.params;
     try {
         const ticket = await viewsService.getTicketById(ticketId);
-        res.status(200).render('ticketPurchase', {
+        res.status(200).render('ticket', {
             title: 'Purchase Ticket',
             ticket,
             user: req.user,
