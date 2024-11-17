@@ -8,66 +8,90 @@
 </head>
 
 <body>
-    <main>
-        <h1>Real Time Products</h1>
-        <div class="form-container">
-            <h2>Agregar stock</h2>
-            <form id="products-form" enctype="multipart/form-data">
-                <label for="name">Name</label>
-                <input type="text" id="name" name="title" required>
-                <label for="code">Code</label>
-                <input type="text" id="code" name="code" required>
-                <label for="description">Description</label>
-                <input type="text" id="description" name="description" required>
-                <label for="price">Price</label>
-                <input type="number" id="price" name="price" required>
-                <label for="stock">Stock</label>
-                <input type="number" id="stock" name="stock" required>
-                <label for="category">Category</label>
-                <input type="text" id="category" name="category" required>
-                <label for="thumbnail">Imagenes</label>
-                <input type="file" id="thumbnails" name="thumbnails" accept="image/*" multiple>
-                <button type="submit">Add</button>
-            </form>
-        </div>
 
-        <div id="container-products" class="container">
-            {{#each products}}
-            <div class="card-product">
-                <header class="card-header">
-                    <div class="img-container">
-                        {{#if thumbnails.length}}
-                            {{#each thumbnails}}
-                                <img src="{{this}}" alt="Product image">
-                            {{/each}}
-                        {{else}}
-                            <img src="/default-image.jpg" alt="Default product image">
-                        {{/if}}
-                    </div>
-                </header>
-                <div class="card-content">
-                    <h3 class="title-product">{{this.title}}</h3>
-                    <p class="description-product">{{this.description}}</p>
-                    <p class="price-product">${{this.price}}</p>
+    <nav class="header">
+        <ul class="nav-list">
+            <li class="nav-item welcome-message">
+                {{#if user}}
+                <span>Welcome,
+                    {{user.first_name}}
+                    {{user.last_name}}
+                    ({{user.role}})</span>
+                {{/if}}
+            </li>
+            </li>
+            <li class="nav-item logout">
+                <button onclick="location.href='/api/sessions/logout'" class="btn logout-btn">Logout❌</button>
+            </li>
+        </ul>
+    </nav>
+
+
+    <h1>Real Time Products</h1>
+    <div class="form-container">
+        <h2>Add stock</h2>
+        <form id="products-form" enctype="multipart/form-data">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="title" required>
+            <label for="code">Code</label>
+            <input type="text" id="code" name="code" required>
+            <label for="description">Description</label>
+            <input type="text" id="description" name="description" required>
+            <label for="price">Price</label>
+            <input type="number" id="price" name="price" required>
+            <label for="stock">Stock</label>
+            <input type="number" id="stock" name="stock" required>
+            <label for="category">Category</label>
+            <input type="text" id="category" name="category" required>
+            <label for="thumbnail">Imagenes</label>
+            <input type="file" id="thumbnails" name="thumbnails" accept="image/*" multiple>
+            <input type="hidden" name="status" value="active">
+            <button type="submit">Add</button>
+        </form>
+    </div>
+
+    <div id="container-products" class="container">
+        {{#each products}}
+        <div class="card-product">
+            <header class="card-header">
+                <div class="img-container">
+                    {{#if thumbnails.length}}
+                    {{#each thumbnails}}
+                    <img src="{{this}}" alt="Product image">
+                    {{/each}}
+                    {{else}}
+                    <img src="/default-image.jpg" alt="Default product image">
+                    {{/if}}
                 </div>
-                <footer class="card-footer">
-                    <button id="btn-delete" class="btn-delete" data-id={{this._id}}>Delete</button>
-                </footer>
+            </header>
+            <div class="card-content">
+                <h3 class="title-product">{{this.title}}</h3>
+                <p class="description-product">{{this.description}}</p>
+                <p class="price-product">${{this.price}}</p>
             </div>
-            {{/each}}
+            <footer class="card-footer">
+                <button id="btn-delete" class="btn-delete" data-id={{this._id}}>Delete</button>
+            </footer>
         </div>
+        {{/each}}
+    </div>
+
+    <div id="pagination-controls" class="pagination-container"></div>
 
     <div class="additional-buttons">
         <button onclick="location.href='/products'" class="btn-secondary">Return to products</button>
     </div>
 
-        <div id="pagination-controls"></div>
-        
-    </main>
+    <br>
+    <br>
+
+    <footer class="home-footer">
+        <p>&copy; 2024 My Store - All rights reserved</p>
+    </footer>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/realTimeProducts.js"></script>
+
 </body>
 
-<script src="/socket.io/socket.io.js"></script>
-<script src="/js/realTimeProducts.js"></script>
-
 </html>
-

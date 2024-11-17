@@ -177,6 +177,18 @@ const updateCartUI = (cart) => {
 
 buyNowButton.addEventListener("click", async () => {
     try {
+        const userCartId = await getUserCartId();
+        if (!userCartId) throw new Error('No cartId found');
+
+        const response = await fetch(`/api/carts/${userCartId}`);
+        if (!response.ok) throw new Error('Failed to fetch cart products');
+
+        const cart = await response.json();
+        if (!cart.products || cart.products.length === 0) {
+            alert('Your cart is empty. Add products before proceeding to checkout.');
+            return;
+        }
+
         await purchaseCart();
     } catch (error) {
         console.error('Error while buying cart:', error);

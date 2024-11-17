@@ -1,4 +1,5 @@
 import viewsService from '../services/viewsServices.js';
+import { sendMail } from '../services/mailService.js';
 
 const getCart = async (req, res) => {
     const cartId = req.user.cart;
@@ -67,6 +68,15 @@ const getTicketPurchase = async (req, res) => {
     const { ticketId } = req.params;
     try {
         const ticket = await viewsService.getTicketById(ticketId);
+
+        await sendMail(
+            req.user,
+            req.user.email, 
+            'Confirmación de compra', 
+            `Gracias por tu compra. Aquí está el detalle de tu ticket: ${ticket.code}`, 
+            `<h1>Gracias por tu compra</h1><p>Aquí está el detalle de tu ticket: ${ticket.code}</p>`
+        );
+
         res.status(200).render('ticket', {
             title: 'Purchase Ticket',
             ticket,
@@ -79,6 +89,7 @@ const getTicketPurchase = async (req, res) => {
         });
     }
 };
+
 
 export default {
     getCart,

@@ -23,9 +23,8 @@ const productsSchema = new mongoose.Schema({
         min: [0, 'Price must be a positive number']
     },
     status: {
-        type: String,
-        enum: ['active', 'inactive'],
-        default: 'active'
+        type: Boolean,
+        default: true
     },
     stock: {
         type: Number,
