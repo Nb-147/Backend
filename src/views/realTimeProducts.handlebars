@@ -27,28 +27,48 @@
     </nav>
 
 
-    <h1>Real Time Products</h1>
-    <div class="form-container">
-        <h2>Add stock</h2>
-        <form id="products-form" enctype="multipart/form-data">
-            <label for="name">Name</label>
-            <input type="text" id="name" name="title" required>
-            <label for="code">Code</label>
-            <input type="text" id="code" name="code" required>
-            <label for="description">Description</label>
-            <input type="text" id="description" name="description" required>
-            <label for="price">Price</label>
-            <input type="number" id="price" name="price" required>
-            <label for="stock">Stock</label>
-            <input type="number" id="stock" name="stock" required>
-            <label for="category">Category</label>
-            <input type="text" id="category" name="category" required>
-            <label for="thumbnail">Imagenes</label>
-            <input type="file" id="thumbnails" name="thumbnails" accept="image/*" multiple>
-            <input type="hidden" name="status" value="active">
-            <button type="submit">Add</button>
-        </form>
-    </div>
+<h1>Real Time Products</h1>
+<div class="form-container">
+    <h2>Add stock</h2>
+<form id="products-form" enctype="multipart/form-data">
+    <label for="name">Name</label>
+    <input type="text" id="name" name="title" required>
+
+    <label for="code">Code</label>
+    <input type="text" id="code" name="code" required>
+
+    <label for="description">Description</label>
+    <input type="text" id="description" name="description" required>
+
+    <label for="price">Price</label>
+    <input type="number" id="price" name="price" required>
+
+    <label for="stock">Stock</label>
+    <input type="number" id="stock" name="stock" required>
+
+    <label for="category">Category</label>
+    <select id="category" name="category" class="btn" required>
+        <option value="">Select Categories</option>
+        <option value="Notebooks">Notebooks</option>
+        <option value="Auriculares">Auriculares</option>
+        <option value="Seguridad">Seguridad</option>
+        <option value="Impresoras">Impresoras</option>
+        <option value="Tablet">Tablet</option>
+        <option value="Monitores">Monitores</option>
+        <option value="Ropa">Ropa</option>
+        <option value="RAM">RAM</option>
+        <option value="Otros">Otros</option>
+    </select>
+
+    <label for="thumbnail">Images (URL or File)</label>
+    <input type="text" id="thumbnails-url" name="thumbnails" placeholder="Enter image URL">
+    <input type="file" id="thumbnails-file" name="thumbnails" accept="image/*" multiple>
+
+    <input type="hidden" name="status" value="active">
+    <button type="submit">Add</button>
+</form>
+
+</div>
 
     <div id="container-products" class="container">
         {{#each products}}

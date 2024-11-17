@@ -85,8 +85,20 @@ socket.on("deleteProduct", () => {
 productsForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    const formData = new FormData(productsForm);
+
+    const requiredFields = ["title", "description", "price", "stock", "code", "category"];
+    for (const field of requiredFields) {
+        if (!formData.get(field)) {
+            alert(`Please fill in the required field: ${field}`);
+            return;
+        }
+    }
+
+    for (let [key, value] of formData.entries()) {
+    }
+
     try {
-        const formData = new FormData(productsForm);
         const response = await fetch("/api/products", {
             method: "POST",
             body: formData,
@@ -101,8 +113,10 @@ productsForm.addEventListener("submit", async (e) => {
         fetchProducts(currentPage);
     } catch (error) {
         console.error("Error submitting form:", error);
+        alert("Failed to create product. Please try again.");
     }
 });
+
 
 containerProducts.addEventListener("click", async (e) => {
     if (e.target.classList.contains("btn-delete")) {

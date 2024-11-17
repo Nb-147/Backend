@@ -57,7 +57,7 @@ const getProducts = async (filters = {}) => {
                     <header class="card-header">
                         <div class="img-container">
                             ${prod.thumbnails.map(
-                                (thumbnail) => `<img src="${thumbnail}" alt="Product image">`
+                                (thumbnail) => `<img src="${thumbnail}" alt="Product image" onerror="this.onerror=null;this.src='/img/default-product.png';">`
                             ).join('')}
                         </div>
                     </header>
@@ -78,6 +78,7 @@ const getProducts = async (filters = {}) => {
         console.error("Error loading products:", err);
     }
 };
+
 
 const updatePaginationButtons = () => {
     currentPage.textContent = currentPageNumber;
